@@ -1,0 +1,47 @@
+#include "dynarray.h"
+#include <memory.h>
+#include <stdio.h>
+#include <stdlib.h>
+
+// TODO ogarnąć
+// TODO dokumentacja
+
+static DA* daFind(DA *arrayPtr, size_t index, int *currentIndexPtr) {
+    DA *currentPtr;
+
+    currentPtr = arrayPtr;
+    *currentIndexPtr = index;
+
+    while (*currentIndexPtr >= BLOCK_SIZE) {
+        if (currentPtr->next == NULL) {
+            currentPtr->next = malloc(sizeof(DA));
+
+            if (currentPtr->next == NULL) {
+                fprintf(stderr, "ERROR 0\n");
+                exit(1);
+            }
+
+            memset(currentPtr->next, '\0', sizeof(DA));
+        }
+        currentPtr = currentPtr->next;
+        *currentIndexPtr -= BLOCK_SIZE;
+    }
+    return currentPtr;
+}
+
+void daPut(DA *arrayPtr, size_t index, size_t data) {
+    DA *currentPtr;
+    int currentIndex;
+
+    currentPtr = daFind(arrayPtr, index, &currentIndex);
+    currentPtr->data[currentIndex] = data;
+}
+
+size_t daGet(DA *arrayPtr, size_t index) {
+    DA *currentPtr;
+
+    int currentIndex;
+
+    currentPtr = daFind(arrayPtr, index, &currentIndex);
+    return currentPtr->data[currentIndex];
+}

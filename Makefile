@@ -1,6 +1,11 @@
-labirynth:
+CC = gcc
+CFLAGS = -w -Wall -Wextra -Wno-implicit-fallthrough -std=c17 -O2
+
+SRC=$(wildcard *.c)
+
+labirynth: $(SRC)
 	@mkdir -p build
-	gcc -Wall -Wextra -Wno-implicit-fallthrough -std=c17 -O2 -o build/labirynth labirynth.c
+	$(CC) $(CFLAGS) $^ -o build/$@
 
 clean:
-	rm labirynth
+	rm build/labirynth
