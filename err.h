@@ -1,0 +1,1 @@
+void exitWithError(int errNum);

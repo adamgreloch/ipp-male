@@ -1,49 +1,17 @@
-#include "labirynth.h"
-#include "dynarray.h"
+#include "input.h"
+#include "err.h"
 
 #define IN 1
 #define OUT 0
 
-void getInput(DA* arrayPtr, int inputLine);
-void exitWithError(int errNum);
-
 size_t dimNum = -1;
 
-int main() {
-
-    DA *dimensions, *startCords, *destCords;
-
-    dimensions = malloc(sizeof(DA));
-    dimensions->next = NULL;
-
-    startCords = malloc(sizeof(DA));
-    startCords->next = NULL;
-
-    destCords = malloc(sizeof(DA));
-    destCords->next = NULL;
-
-    getInput(dimensions, 1);
-    getInput(startCords, 2);
-    getInput(destCords, 3);
-
-    free(dimensions);
-    free(startCords);
-    free(destCords);
-
-    return 0;
-}
-
-void exitWithError(int errNum) {
-    fprintf(stderr, "ERROR %d\n", errNum);
-    // TODO jawne zwolnienie pamięci
-    exit(1);
-}
-
-void insertElem(DA* arrayPtr, char str[], size_t i, size_t k, int inputLine) {
+static void insertElem(DA* arrayPtr, char str[], size_t i, size_t k, int inputLine) {
     str[i] = ' ';
     size_t elem = strtol(str, NULL, 10);
-    if (elem < 1 && inputLine == 3)
-        exitWithError(3);
+    if (elem < 1)
+        // input error: numbers have to be positive
+        exitWithError(inputLine);
     daPut(arrayPtr, k, strtol(str, NULL, 10));
 }
 
@@ -55,6 +23,9 @@ void getInput(DA* arrayPtr, int inputLine) {
     char c;
 
     while ((c = getchar()) != '\n') {
+        if (i >= sizeof(size_t))
+            // input error: labyrinth too big
+            exitWithError(0);
         // TODO refactor
         if (state == IN) {
             if (c != ' ') {
@@ -79,12 +50,35 @@ void getInput(DA* arrayPtr, int inputLine) {
     }
 
     if (k == 0)
+        // input error: labyrinth dimension must be non-zero
         exitWithError(1);
 
     if (dimNum == -1)
         dimNum = k;
     else if (k != dimNum)
-        // raise error if number of arguments per line is not the same
+        // input error: number of arguments is mismatched throughout the input lines
         exitWithError(inputLine);
+}
+
+size_t getDimNum() {
+    return dimNum;
+}
+
+void getWallConfig() {
+    size_t wallConfigNum;
+    int mode = -1; // 0 for hex, 1 for R
+    char c;
+
+    while ((c=getchar()) != '\n') {
+        if (mode == -1 && c == 'R')
+            mode = 1;
+
+        if (mode == 1) {
+
+        }
+    }
+
+
+    scanf("%x", &wallConfigNum);
 }
 
