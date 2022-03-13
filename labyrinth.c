@@ -1,28 +1,36 @@
 #include "labyrinth.h"
-#include "input.h"
+#include "walls.h"
 
 int main() {
 
-    DA *dimensions, *startCords, *destCords;
+    DA *dimensions, *binaryRepArray;
+    daInit(dimensions);
+    daInit(binaryRepArray);
 
-    dimensions = malloc(sizeof(DA));
-    dimensions->next = NULL;
+    getFirstInput(dimensions, 1);
 
-    startCords = malloc(sizeof(DA));
-    startCords->next = NULL;
+    size_t* startPos = getInput(2);
+    size_t* endPos = getInput(3);
 
-    destCords = malloc(sizeof(DA));
-    destCords->next = NULL;
+    getBinaryWallsRep(binaryRepArray);
 
-    getInput(dimensions, 1);
-    getInput(startCords, 2);
-    getInput(destCords, 3);
+    if (getchar() != EOF) {
+        // input error: too many input lines
+        free(dimensions);
+        free(binaryRepArray);
+        exitWithError(5);
+    }
+    if (findCubeState(startPos, dimensions, binaryRepArray)) {
+        // input error: startPos filled
+        free(dimensions);
+        free(binaryRepArray);
+        exitWithError(2);
+    }
 
+    free(startPos);
+    free(endPos);
     free(dimensions);
-    free(startCords);
-    free(destCords);
+    free(binaryRepArray);
 
     return 0;
 }
-
-

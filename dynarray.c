@@ -6,7 +6,7 @@
 // TODO ogarnąć
 // TODO dokumentacja
 
-static DA* daFind(DA *arrayPtr, size_t index, int *currentIndexPtr) {
+static DA* daFind(DA *arrayPtr, size_t index, size_t *currentIndexPtr) {
     DA *currentPtr;
 
     currentPtr = arrayPtr;
@@ -31,7 +31,7 @@ static DA* daFind(DA *arrayPtr, size_t index, int *currentIndexPtr) {
 
 void daPut(DA *arrayPtr, size_t index, size_t data) {
     DA *currentPtr;
-    int currentIndex;
+    size_t currentIndex;
 
     currentPtr = daFind(arrayPtr, index, &currentIndex);
     currentPtr->data[currentIndex] = data;
@@ -40,7 +40,7 @@ void daPut(DA *arrayPtr, size_t index, size_t data) {
 size_t daGet(DA *arrayPtr, size_t index) {
     DA *currentPtr;
 
-    int currentIndex;
+    size_t currentIndex;
 
     currentPtr = daFind(arrayPtr, index, &currentIndex);
     return currentPtr->data[currentIndex];
