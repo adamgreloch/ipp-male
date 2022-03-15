@@ -1,7 +1,6 @@
+#ifndef _INPUT_H_
+#define _INPUT_H_
 #include "input.h"
-#include <stdint.h>
-#include <stddef.h>
-#include <stdio.h>
-#include <stdlib.h>
+#endif
 
 int findCubeState(size_t cube[], DA* dimensionsPtr, DA* binaryRepArrayPtr);

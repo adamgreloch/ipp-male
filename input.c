@@ -1,11 +1,19 @@
 #pragma clang diagnostic push
 #pragma ide diagnostic ignored "cppcoreguidelines-narrowing-conversions"
 #include "input.h"
+#ifndef _ERR_H_
+#define _ERR_H_
 #include "err.h"
+#endif
+#ifndef _STDINT_H_
+#define _STDINT_H_
+#include <stdint.h>
+#endif
 
 static size_t dimNum = -1;
 
-static size_t getDecimalWallsRep();
+static unsigned char* getBinaryFromHex();
+static unsigned char* getBinaryFromR();
 
 static size_t getNum(char str[], size_t i, int inputLine) {
     str[i] = ' ';
@@ -31,7 +39,7 @@ size_t* getInput(int inputLine) {
     char c;
 
     while ((c = getchar()) != '\n') {
-        if (i >= sizeof(size_t)) {
+        if (i >= sizeof(size_t)) { // TODO ERROR 0 niemal na pewno nie powinien być tak wykrywany
             // input error: labyrinth too big
             free(inputArr);
             exitWithError(0);
@@ -112,54 +120,76 @@ size_t getDimNum() {
     return dimNum;
 }
 
-void getBinaryWallsRep(DA* arrayPtr) {
-    size_t walls = getDecimalWallsRep();
-    size_t k = 0;
-    while (walls != 0) {
-        if (k == sizeof(size_t))
-            exitWithError(4);
-        daPut(arrayPtr, k, walls % 2);
-        k++;
-        walls = walls / 2;
-    }
-}
+/// getBinaryWallsRep detects fourth line input type and applies appropriate
+/// input parsing function to get a binary expansion of the number in that line.
+/// @param [in] arrayPtr is a pointer to an array destined to store
+/// the binary expansion.
+/// @return pointer to an array of two hex values per cell
+unsigned char* getBinaryWallsRep() {
 
-static size_t getDecimalWallsRep() {
     char c;
-    int mode = -2; // 0 for hex, 1 for R, -1 for in-between state
+    int inputType = -2; // 0 for hex, 1 for R, -1 for in-between state
 
-    while (mode < 0 && (c = getchar()) != '\n')
-        if ((mode == -2 && c == '0') || (mode == -1 && c == 'x'))
-            mode++;
-        else if (mode == -2 && c == 'R')
-            mode = 1;
-
-    if (mode == 0)
-        return getDecimalFromHex();
+    while (inputType < 0 && (c = getchar()) != '\n')
+        if ((inputType == -2 && c == '0') || (inputType == -1 && c == 'x'))
+            inputType++;
+        else if (inputType == -2 && c == 'R')
+            inputType = 1;
+    if (inputType == 0)
+        return getBinaryFromHex();
     else
-        return getDecimalFromR();
+        return getBinaryFromR();
 }
 
-size_t getDecimalFromHex() {
-    char *hexFormat = NULL;
-    hexFormat = (char *) malloc(sizeof(size_t));
-    size_t i = 0;
+/// getBinaryFromHex converts Hex number to Binary
+/// @param [in] arrayPtr array of whatever size; sizeof(size_t) for now
+/// @return array of bits
+static unsigned char* getBinaryFromHex() {
+
+    unsigned char* arr = (unsigned char*) malloc(128*sizeof(size_t));
+
+    // To store binary expansion we will use an array of chars.
+    // 1 char can store 8 bits. Since 1 hex digit represents 4 bits,
+    // we can store 2 hex values in 1 char thus optimizing memory usage.
+
+    unsigned char twoHex = 0; // initialize to 0000 0000
     char c;
+    size_t i = 0; // arrayPtr index
+    int nextPos = 0; // 1 - left 4 bits, 0 - right 4 bits
+    int hexVal;
 
     while ((c = getchar()) != '\n') {
-        hexFormat[i] = c;
-        i++;
+        // in ASCII, numbers and letters are ordered consecutively
+        if ('0' <= c && c <= '9')
+            hexVal = c - '0';
+        else if ('A' <= c && c <= 'F')
+            hexVal = 10 + c - 'A';
+        else if ('a' <= c && c <= 'f')
+            hexVal = 10 + c - 'a';
+
+        // TODO stworzyć strukturę i set/get do tablicy z bitami
+        twoHex |= hexVal << (4 * nextPos);
+
+        if (nextPos) {
+            arr[i] = twoHex;
+            i++;
+            twoHex = 0;
+        }
+
+        nextPos = 1 - nextPos;
     }
 
-    size_t decimal = strtol(hexFormat, NULL, 16);
-    free(hexFormat);
+    if (nextPos)
+        arr[i] = twoHex;
 
-    return decimal;
+    return arr;
 }
 
-size_t getDecimalFromR() {
+unsigned char* getBinaryFromR() {
+
+    unsigned char* arr = (unsigned char*) malloc(128*sizeof(size_t));
     // TODO dorobić R
     size_t wallConfigNum;
     uint32_t rFormat[5];
-    return wallConfigNum;
+    return arr;
 }

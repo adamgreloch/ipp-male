@@ -1,7 +1,4 @@
 #include "dynarray.h"
-#include <memory.h>
-#include <stdio.h>
-#include <stdlib.h>
 
 // TODO ogarnąć
 // TODO dokumentacja
@@ -17,6 +14,7 @@ static DA* daFind(DA *arrayPtr, size_t index, size_t *currentIndexPtr) {
             currentPtr->next = malloc(sizeof(DA));
 
             if (currentPtr->next == NULL) {
+                // error: not enough memory to expand further
                 fprintf(stderr, "ERROR 0\n");
                 exit(1);
             }
@@ -38,6 +36,23 @@ void daPut(DA *arrayPtr, size_t index, size_t data) {
 }
 
 size_t daGet(DA *arrayPtr, size_t index) {
+    DA *currentPtr;
+
+    size_t currentIndex;
+
+    currentPtr = daFind(arrayPtr, index, &currentIndex);
+    return currentPtr->data[currentIndex];
+}
+
+void daPutBinary(DA *arrayPtr, size_t index, char data) {
+    DA *currentPtr;
+    size_t currentIndex;
+
+    currentPtr = daFind(arrayPtr, index, &currentIndex);
+    currentPtr->data[currentIndex] = data;
+}
+
+char daGetBinary(DA *arrayPtr, size_t index) {
     DA *currentPtr;
 
     size_t currentIndex;

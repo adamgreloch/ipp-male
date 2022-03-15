@@ -1,5 +1,7 @@
+#ifndef _STDIO_H_
+#define _STDIO_H_
 #include <stdio.h>
-#include <stdlib.h>
+#endif
 
 #define BLOCK_SIZE 100
 
@@ -11,7 +13,7 @@ struct dynarray {
 
 typedef struct dynarray DA;
 
-#define daInit(arrayPtr) {(arrayPtr) = malloc(sizeof(DA)); (arrayPtr)->next = NULL;}
-
 extern size_t daGet(DA *arrayPtr, size_t index);
 extern void daPut(DA *arrayPtr, size_t index, size_t data);
+extern char daGetChar(DA *arrayPtr, size_t index);
+extern void daPutChar(DA *arrayPtr, size_t index, char data);
