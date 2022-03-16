@@ -1,7 +1,7 @@
-#ifndef _STDIO_H_
-#define _STDIO_H_
+#ifndef MALE_DYNARRAY_H
+#define MALE_DYNARRAY_H
+
 #include <stdio.h>
-#endif
 
 #define BLOCK_SIZE 100
 
@@ -17,3 +17,5 @@ extern size_t daGet(DA *arrayPtr, size_t index);
 extern void daPut(DA *arrayPtr, size_t index, size_t data);
 extern char daGetChar(DA *arrayPtr, size_t index);
 extern void daPutChar(DA *arrayPtr, size_t index, char data);
+
+#endif //MALE_DYNARRAY_H

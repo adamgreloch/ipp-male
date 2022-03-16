@@ -1,6 +1,8 @@
-#ifndef _INPUT_H_
-#define _INPUT_H_
-#include "input.h"
-#endif
+#ifndef MALE_WALLS_H
+#define MALE_WALLS_H
 
-int findCubeState(size_t cube[], DA* dimensionsPtr, DA* binaryRepArrayPtr);
+#include "input.h"
+
+int findCubeState(size_t cube[], DA* dimensionsPtr, unsigned char* binaryRepArrayPtr);
+
+#endif //MALE_WALLS_H

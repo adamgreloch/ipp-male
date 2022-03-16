@@ -1,7 +1,7 @@
-#ifndef _DYNARRAY_H_
-#define _DYNARRAY_H_
+#ifndef MALE_INPUT_H
+#define MALE_INPUT_H
+
 #include "dynarray.h"
-#endif
 
 void getFirstInput(DA* arrayPtr, int inputLine);
 size_t* getInput(int inputLine);
@@ -11,3 +11,5 @@ size_t getDimNum();
 #define OUT 0
 
 unsigned char* getBinaryWallsRep();
+
+#endif //MALE_INPUT_H

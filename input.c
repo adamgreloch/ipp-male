@@ -1,14 +1,9 @@
 #pragma clang diagnostic push
 #pragma ide diagnostic ignored "cppcoreguidelines-narrowing-conversions"
 #include "input.h"
-#ifndef _ERR_H_
-#define _ERR_H_
 #include "err.h"
-#endif
-#ifndef _STDINT_H_
-#define _STDINT_H_
+#include "bitTable.h"
 #include <stdint.h>
-#endif
 
 static size_t dimNum = -1;
 
@@ -26,7 +21,6 @@ static size_t getNum(char str[], size_t i, int inputLine) {
 }
 
 size_t* getInput(int inputLine) {
-
     size_t* inputArr = malloc(dimNum * sizeof(size_t));
 
     if (!inputArr)
@@ -76,7 +70,6 @@ size_t* getInput(int inputLine) {
 }
 
 void getFirstInput(DA* arrayPtr, int inputLine) {
-
     char str[sizeof(size_t)];
     int state = OUT;
     size_t i = 0, k = 0;
@@ -142,20 +135,18 @@ unsigned char* getBinaryWallsRep() {
 }
 
 /// getBinaryFromHex converts Hex number to Binary
-/// @param [in] arrayPtr array of whatever size; sizeof(size_t) for now
 /// @return array of bits
 static unsigned char* getBinaryFromHex() {
-
-    unsigned char* arr = (unsigned char*) malloc(128*sizeof(size_t));
-
     // To store binary expansion we will use an array of chars.
     // 1 char can store 8 bits. Since 1 hex digit represents 4 bits,
     // we can store 2 hex values in 1 char thus optimizing memory usage.
+    // The bitTable module implements intuitive accessors for such type
+    // of storage.
 
-    unsigned char twoHex = 0; // initialize to 0000 0000
+    unsigned char* arr = (unsigned char*) malloc(128*sizeof(size_t));
+
     char c;
     size_t i = 0; // arrayPtr index
-    int nextPos = 0; // 1 - left 4 bits, 0 - right 4 bits
     int hexVal;
 
     while ((c = getchar()) != '\n') {
@@ -167,20 +158,9 @@ static unsigned char* getBinaryFromHex() {
         else if ('a' <= c && c <= 'f')
             hexVal = 10 + c - 'a';
 
-        // TODO stworzyć strukturę i set/get do tablicy z bitami
-        twoHex |= hexVal << (4 * nextPos);
-
-        if (nextPos) {
-            arr[i] = twoHex;
-            i++;
-            twoHex = 0;
-        }
-
-        nextPos = 1 - nextPos;
+        setBitsFromHex(&arr, i, hexVal);
+        i++;
     }
-
-    if (nextPos)
-        arr[i] = twoHex;
 
     return arr;
 }

@@ -1,4 +1,10 @@
-#include "main.h"
+#include "bitTable.h"
+#include "walls.h"
+#include "dynarray.h"
+#include "input.h"
+#include "err.h"
+#include <stdint.h>
+#include <stdlib.h>
 
 int main() {
 
@@ -17,38 +23,25 @@ int main() {
         // memory error: malloc failed
         exitWithError(0);
 
-/*
-    if (getchar() != EOF) {
-        // input error: too many input lines
-        free(dimensions);
-        free(binaryRepArray);
-        exitWithError(5);
-    }
-*/
+//    if (getchar() != EOF) {
+//        // input error: too many input lines
+//        free(dimensions);
+//        free(binaryRepArray);
+//        exitWithError(5);
+//    }
 
-    int twoBit;
-    int invArr[8];
-    for (int i = 0; i < 100; i++) {
-        twoBit = binaryRepArray[i];
-        for (int j = 0; j < 8; j++) {
-            invArr[8-j-1] = twoBit % 2;
-            twoBit /= 2;
-        }
-        for (int j = 0; j < 8; j++)
-            if (invArr[j])
-                printf("\033[0;32m1");
-            else
-                printf("\033[0;37m0");
-    }
+//    for (int i = 0; i < getMaxBitLength(); i++) {
+//        printf("%d", getBit(&binaryRepArray, i));
+//    }
+//
+//    printf("\n%d", getMaxBitLength());
 
-/*
     if (findCubeState(startPos, dimensions, binaryRepArray)) {
         // input error: startPos filled
         free(dimensions);
         free(binaryRepArray);
         exitWithError(2);
     }
-*/
 
     free(startPos);
     free(endPos);
