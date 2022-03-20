@@ -145,7 +145,7 @@ static unsigned char* getBinaryFromHex() {
     // of storage.
 
     size_t bitLength;
-    unsigned char* arr = (unsigned char*) malloc(128*sizeof(size_t));
+    unsigned char* arr = (unsigned char*) malloc(128*sizeof(size_t));  // ! rozmiar narazie roboczy
 
     char c;
     size_t i = 0; // arrayPtr index

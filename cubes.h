@@ -3,9 +3,9 @@
 
 #include "input.h"
 
-int findCubeState(size_t* cube, DA* dimensionsPtr, unsigned char* binaryRepArrayPtr);
+int isCubeFull(size_t* cube, unsigned char* binaryRepArrayPtr);
 
-size_t rankCube(size_t* cube, DA* dimensionsPtr);
-size_t* unrankCube(size_t cubeRank, DA* dimensionsPtr);
+size_t rankCube(size_t* cube);
+size_t* unrankCube(size_t cubeRank);
 
 #endif //MALE_CUBES_H

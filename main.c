@@ -1,14 +1,14 @@
 #include "bitTable.h"
 #include "cubes.h"
-#include "dynarray.h"
 #include "input.h"
 #include "err.h"
 #include <stdint.h>
 #include <stdlib.h>
 
-int main() {
+static DA *dimensions;
+static unsigned char* binaryRepArray;
 
-    DA *dimensions;
+int main() {
     dimensions = malloc(sizeof(DA));
     dimensions->next = NULL;
 
@@ -17,7 +17,7 @@ int main() {
     size_t* startPos = getInput(2);
     size_t* endPos = getInput(3);
 
-    unsigned char* binaryRepArray = getBinaryWallsRep();
+    binaryRepArray = getBinaryWallsRep();
     // z tego co widzę, ta liczba może być też za mała, by
     // być w stanie opisać labirynt. To też należałoby chyba sprawdzić.
 
@@ -43,7 +43,7 @@ int main() {
 //    printf("%d\n", rankCube(startPos, dimensions));
 //    printf("%d\n", rankCube(unrankCube(rankCube(startPos, dimensions), dimensions), dimensions));
 
-    if (findCubeState(startPos, dimensions, binaryRepArray) != 0) {
+    if (isCubeFull(startPos, dimensions, binaryRepArray) != 0) {
         // input error: startPos filled or cube pos outside dimension
         free(dimensions);
         free(binaryRepArray);
@@ -56,4 +56,12 @@ int main() {
     free(binaryRepArray);
 
     return 0;
+}
+
+DA* getDimensions() {
+    return dimensions;
+}
+
+unsigned char* getBinaryRepArray() {
+    return binaryRepArray;
 }
