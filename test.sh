@@ -7,7 +7,7 @@ RESET='\033[0m'
 
 for f in "$2"/*.in
 do
-    ./"$1" < "$f" > "${f%in}outp"
+echo    ./"$1" < "$f" > "${f%in}outp"
 done
 
 for f in "$2"/*.in

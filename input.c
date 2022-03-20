@@ -6,6 +6,7 @@
 #include <stdint.h>
 
 static size_t dimNum = -1;
+static size_t maxInputBitLength = 0;
 
 static unsigned char* getBinaryFromHex();
 static unsigned char* getBinaryFromR();
@@ -143,6 +144,7 @@ static unsigned char* getBinaryFromHex() {
     // The bitTable module implements intuitive accessors for such type
     // of storage.
 
+    size_t bitLength;
     unsigned char* arr = (unsigned char*) malloc(128*sizeof(size_t));
 
     char c;
@@ -158,7 +160,11 @@ static unsigned char* getBinaryFromHex() {
         else if ('a' <= c && c <= 'f')
             hexVal = 10 + c - 'a';
 
-        setBitsFromHex(&arr, i, hexVal);
+        bitLength = setBitsFromHex(&arr, i, hexVal);
+
+        if (bitLength > maxInputBitLength)
+            maxInputBitLength = bitLength;
+
         i++;
     }
 
@@ -172,4 +178,8 @@ unsigned char* getBinaryFromR() {
     size_t wallConfigNum;
     uint32_t rFormat[5];
     return arr;
+}
+
+size_t getMaxInputBitLength() {
+    return maxInputBitLength;
 }
