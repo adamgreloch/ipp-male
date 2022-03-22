@@ -54,7 +54,7 @@ static size_t pop(queue* q) {
     q->size--;
     free(tmp);
 
-    printf("# %d <- q\n", n);
+    //printf("# %d <- q\n", n);
     return n;
 }
 
@@ -80,14 +80,14 @@ static int getMod(size_t posMod) {
 }
 
 static void tryToPush(size_t* pos, uint8_t* binaryRep, int mod) {
-    printf("# try %d, mod = %d\n", rankCube(pos), mod);
+    //printf("# try %d, mod = %d\n", rankCube(pos), mod);
 
     if (!isCubeFull(pos, binaryRep)) {
         size_t rankedPos = rankCube(pos);
 
         if (getTwoBit(visited, rankedPos) == 3) {
             push(posQueue, addMod(rankedPos, mod));
-            printf("# %d -> q (%d, %d)\n", addMod(rankedPos, mod), rankedPos, mod);
+            //printf("# %d -> q (%d, %d)\n", addMod(rankedPos, mod), rankedPos, mod);
         }
     }
 }
@@ -100,21 +100,51 @@ static void expand(size_t rankedPos, uint8_t* binaryRep, int mod) {
     for (size_t i = 0; i < dimNum; i++) {
         if (pos[i] < daGet(getDimensions(), i)) {
             pos[i]++; // Make one step forward in a dimension.
-            printf("# gen %d\n", rankCube(pos));
+            //printf("# gen %d\n", rankCube(pos));
             tryToPush(pos, binaryRep, mod);
             pos[i]--; // Revert value modifications.
         }
         if (pos[i] > 1) {
             pos[i]--; // Make one step backward.
-            printf("# gen %d\n", rankCube(pos));
+            //printf("# gen %d\n", rankCube(pos));
             tryToPush(pos, binaryRep, mod);
             pos[i]++; // Revert value modifications.
         }
     }
 }
 
-static size_t findPathLength(size_t* startPos, size_t* endPos, uint8_t* visited) {
-    return 42;
+static size_t findPathLength(size_t rankedStartPos, size_t* endPos, uint8_t* visited) {
+    size_t dimNum = getDimNum();
+    size_t length = 0;
+    size_t* pos = endPos;
+    int mod = getMod(getTwoBit(visited, rankCube(pos)));
+    int found = 0;
+
+    //printf("--> %d\n", rankedStartPos);
+
+    while (rankCube(pos) != rankedStartPos) {
+        if (mod == 0)
+            mod = 3;
+
+        for (size_t i = 0; i < dimNum; i++) {
+            for (int j = -1; !found && j <= 1; j += 2)
+                if (1 <= pos[i] + j && pos[i] + j <= daGet(getDimensions(), i)) {
+                    pos[i] += j;
+                    if (getMod(getTwoBit(visited, rankCube(pos))) == (mod - 1) % 3) {
+                        //printf("found, rpos = %d, mod = %d, f_mod = %d\n", rankCube(pos), mod, (mod - 1) % 3);
+                        found = 1;
+                    } else
+                        pos[i] -= j;
+                }
+        }
+
+        if (found) {
+            length++;
+            found = 0;
+            mod = (mod - 1) % 3;
+        }
+    }
+    return length;
 }
 
 size_t findPath(size_t* startPos, size_t* endPos, uint8_t* binaryRep) {
@@ -132,47 +162,37 @@ size_t findPath(size_t* startPos, size_t* endPos, uint8_t* binaryRep) {
     init(posQueue);
 
     int mod = 0;
+
+    push(posQueue, addMod(rankCube(startPos),mod));
+/*
     size_t rankedPos = rankCube(startPos);
+    setTwoBit(&visited, rankedPos, mod);
     expand(rankedPos, binaryRep, mod);
+*/
 
     int foundPath = 0;
-    size_t posMod;
+    size_t posMod, rankedPos;
 
     size_t rankedEndPos = rankCube(endPos);
-    printf("# rEndPos: %d\n", rankedEndPos);
+    //printf("# rEndPos: %d\n", rankedEndPos);
 
     while (!foundPath && !isEmpty(posQueue)) {
         posMod = pop(posQueue);
 
         mod = (getMod(posMod)+1) % 3;
         rankedPos = getPos(posMod);
-        printf("# SPLIT: posMod = %d, rankedPos = %d, mod = %d\n", posMod, rankedPos, getMod(posMod));
+        //printf("# SPLIT: posMod = %d, rankedPos = %d, mod = %d\n", posMod, rankedPos, getMod(posMod));
 
         if (rankedPos == rankedEndPos) {
             foundPath = 1;
             empty(posQueue);
-        } else {
-            setTwoBit(&visited, rankedPos, mod);
+        } else
             expand(rankedPos, binaryRep, mod);
-        }
+        setTwoBit(&visited, rankedPos, mod);
     }
-/*
-    int xd = 11;
-    setTwoBit(&visited, xd, 3);
-    printf("---%d\n", getTwoBit(visited, xd));
-    setTwoBit(&visited, 11, 2);
-    printf("---%d\n", getTwoBit(visited, xd));
-    xd = 10;
-    setTwoBit(&visited, xd, 3);
-    printf("---%d\n", getTwoBit(visited, xd));
-    setTwoBit(&visited, xd, 2);
-    printf("---%d\n", getTwoBit(visited, xd));
-    for (int i = 0; i < 8; i++)
-        printf("%d\n", (223 & (3 << (2*i))) >> (2*i));
-*/
 
     if (!foundPath)
         return -1;
     else
-        return findPathLength(startPos, endPos, visited);
+        return findPathLength(rankCube(startPos), endPos, visited);
 }

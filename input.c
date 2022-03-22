@@ -11,9 +11,11 @@ static size_t maxInputBitLength = 0;
 static uint8_t* getBinaryFromHex();
 static uint8_t* getBinaryFromR();
 
+// TODO uzbroić się przed nieprzyjaznym inputem (z białymi znakami wszędzie)
+
 static size_t getNum(char str[], size_t i, int inputLine) {
     str[i] = ' ';
-    size_t num = strtol(str, NULL, 10);
+    size_t num = strtoull(str, NULL, 10);
     if (num < 1)
         // input error: numbers have to be positive
         exitWithError(inputLine);
@@ -120,7 +122,6 @@ size_t getDimNum() {
 /// the binary expansion.
 /// @return pointer to an array of two hex values per cell
 uint8_t* getBinaryWallsRep() {
-
     char c;
     int inputType = -2; // 0 for hex, 1 for R, -1 for in-between state
 

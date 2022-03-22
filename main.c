@@ -26,22 +26,16 @@ int main() {
         // memory error: malloc failed
         exitWithError(0);
 
-//    if (getchar() != EOF) {
-//        // input error: too many input lines
-//        free(dimensions);
-//        free(binaryRep);
-//        exitWithError(5);
-//    }
-
-    for (int i = 0; i < getMaxInputBitLength(); i++) {
-        printf("--%d", getBit(&binaryRep, i));
+    if (getchar() != EOF) {
+        // input error: too many input lines
+        free(dimensions);
+        free(binaryRep);
+        exitWithError(5);
     }
-    putchar('\n');
-//
-//    printf("%d\n", getMaxInputBitLength());
-//
-//    printf("%d\n", rankCube(startPos, dimensions));
-//    printf("%d\n", rankCube(unrankCube(rankCube(startPos, dimensions), dimensions), dimensions));
+
+//    for (int i = 0; i < getMaxInputBitLength(); i++) {
+//        printf("--%d", getBit(&binaryRep, i));
+//    }
 
     if (isCubeFull(startPos, binaryRep) != 0) {
         // input error: startPos filled or cube pos outside dimension
@@ -50,7 +44,7 @@ int main() {
         exitWithError(2);
     }
 
-    printf("%d", findPath(startPos, endPos, binaryRep));
+    printf("%d\n", findPath(startPos, endPos, binaryRep));
 
     free(startPos);
     free(endPos);
