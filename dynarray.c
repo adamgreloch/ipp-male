@@ -43,20 +43,3 @@ size_t daGet(DA *arrayPtr, size_t index) {
     currentPtr = daFind(arrayPtr, index, &currentIndex);
     return currentPtr->data[currentIndex];
 }
-
-void daPutBinary(DA *arrayPtr, size_t index, char data) {
-    DA *currentPtr;
-    size_t currentIndex;
-
-    currentPtr = daFind(arrayPtr, index, &currentIndex);
-    currentPtr->data[currentIndex] = data;
-}
-
-char daGetBinary(DA *arrayPtr, size_t index) {
-    DA *currentPtr;
-
-    size_t currentIndex;
-
-    currentPtr = daFind(arrayPtr, index, &currentIndex);
-    return currentPtr->data[currentIndex];
-}

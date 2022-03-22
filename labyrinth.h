@@ -1,9 +1,10 @@
-#include <stddef.h>
-#include "dynarray.h"
-
 #ifndef MALE_LABYRINTH_H
 #define MALE_LABYRINTH_H
 
-size_t findPathLength(DA* dimensions, size_t* startPos, size_t* endPos, unsigned char* binaryRepArray);
+#include "dynarray.h"
+#include "stdint.h"
+#include <stddef.h>
+
+size_t findPath(size_t* startPos, size_t* endPos, uint8_t* binaryRep);
 
 #endif //MALE_LABYRINTH_H

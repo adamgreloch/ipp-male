@@ -8,8 +8,8 @@
 static size_t dimNum = -1;
 static size_t maxInputBitLength = 0;
 
-static unsigned char* getBinaryFromHex();
-static unsigned char* getBinaryFromR();
+static uint8_t* getBinaryFromHex();
+static uint8_t* getBinaryFromR();
 
 static size_t getNum(char str[], size_t i, int inputLine) {
     str[i] = ' ';
@@ -119,7 +119,7 @@ size_t getDimNum() {
 /// @param [in] arrayPtr is a pointer to an array destined to store
 /// the binary expansion.
 /// @return pointer to an array of two hex values per cell
-unsigned char* getBinaryWallsRep() {
+uint8_t* getBinaryWallsRep() {
 
     char c;
     int inputType = -2; // 0 for hex, 1 for R, -1 for in-between state
@@ -137,7 +137,7 @@ unsigned char* getBinaryWallsRep() {
 
 /// getBinaryFromHex converts Hex number to Binary
 /// @return array of bits
-static unsigned char* getBinaryFromHex() {
+static uint8_t* getBinaryFromHex() {
     // To store binary expansion we will use an array of chars.
     // 1 char can store 8 bits. Since 1 hex digit represents 4 bits,
     // we can store 2 hex values in 1 char thus optimizing memory usage.
@@ -145,7 +145,7 @@ static unsigned char* getBinaryFromHex() {
     // of storage.
 
     size_t bitLength;
-    unsigned char* arr = (unsigned char*) malloc(128*sizeof(size_t));  // ! rozmiar narazie roboczy
+    uint8_t* arr = (uint8_t*) malloc(1024*sizeof(size_t));  // ! rozmiar narazie roboczy
 
     char c;
     size_t i = 0; // arrayPtr index
@@ -171,9 +171,9 @@ static unsigned char* getBinaryFromHex() {
     return arr;
 }
 
-unsigned char* getBinaryFromR() {
+uint8_t* getBinaryFromR() {
 
-    unsigned char* arr = (unsigned char*) malloc(128*sizeof(size_t));
+    uint8_t* arr = (uint8_t*) malloc(1024*sizeof(size_t));
     // TODO dorobić R
     size_t wallConfigNum;
     uint32_t rFormat[5];

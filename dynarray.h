@@ -15,7 +15,5 @@ typedef struct dynarray DA;
 
 extern size_t daGet(DA *arrayPtr, size_t index);
 extern void daPut(DA *arrayPtr, size_t index, size_t data);
-extern char daGetChar(DA *arrayPtr, size_t index);
-extern void daPutChar(DA *arrayPtr, size_t index, char data);
 
 #endif //MALE_DYNARRAY_H

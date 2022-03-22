@@ -4,6 +4,6 @@
 #include "dynarray.h"
 
 DA* getDimensions();
-unsigned char* getBinaryRepArray();
+uint8_t* getBinaryRep();
 
 #endif //MALE_MAIN_H
