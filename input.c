@@ -11,8 +11,6 @@ static size_t maxInputBitLength = 0;
 static uint8_t* getBinaryFromHex();
 static uint8_t* getBinaryFromR();
 
-// TODO uzbroić się przed nieprzyjaznym inputem (z białymi znakami wszędzie)
-
 static size_t getNum(char str[], size_t i, int inputLine) {
     str[i] = ' ';
     size_t num = strtoull(str, NULL, 10);
