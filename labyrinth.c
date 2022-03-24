@@ -151,13 +151,13 @@ static size_t findPathLength(size_t rankedStartPos, size_t* endPos, uint8_t* vis
 }
 
 size_t findPath(size_t* startPos, size_t* endPos, uint8_t* binaryRep) {
-    visited = (uint8_t*) malloc(1024*sizeof(uint8_t)); // ! rozmiar narazie roboczy
+    visited = (uint8_t*) malloc(sizeof(uint8_t)*getMaxRank());  // ! rozmiar narazie roboczy
 
     if (!visited)
         // malloc failed
         return -1;
 
-    for (int i = 0; i < 1024; i++) {
+    for (int i = 0; i < getMaxRank(); i++) {
         visited[i] = 0xFF;
     }
 

@@ -7,6 +7,7 @@ RESET='\033[0m'
 
 for f in "$2"/*.in
 do
+    # todo: valgrind $VALARGS $1 < $file 2> /tmp/lab.err > /tmp/lab.out
     ./"$1" < "$f" > "${f%in}outp"
 done
 

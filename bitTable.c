@@ -55,6 +55,5 @@ size_t setBitsFromHex(uint8_t** arrayPtr, size_t valueIndex, int hexValue) {
         (*arrayPtr)[cellIndex] |= hexValue; // add 4 bits to the right
         bitLength = 8*(cellIndex) + 8;
     }
-
     return bitLength;
 }

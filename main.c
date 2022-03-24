@@ -18,6 +18,8 @@ int main() {
     size_t* startPos = getInput(2);
     size_t* endPos = getInput(3);
 
+    printf("%d\n", getDimProduct());
+
     binaryRep = getBinaryWallsRep();
     // z tego co widzę, ta liczba może być też za mała, by
     // być w stanie opisać labirynt. To też należałoby chyba sprawdzić.

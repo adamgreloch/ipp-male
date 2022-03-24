@@ -2,6 +2,8 @@
 #pragma ide diagnostic ignored "cppcoreguidelines-narrowing-conversions"
 #include "input.h"
 #include "err.h"
+#include "cubes.h"
+#include "main.h"
 #include "bitTable.h"
 #include <stdint.h>
 
@@ -10,6 +12,8 @@ static size_t maxInputBitLength = 0;
 
 static uint8_t* getBinaryFromHex();
 static uint8_t* getBinaryFromR();
+
+// TODO uwzglednic wszystkie biale znaki
 
 static size_t getNum(char str[], size_t i, int inputLine) {
     str[i] = ' ';
@@ -144,13 +148,14 @@ static uint8_t* getBinaryFromHex() {
     // of storage.
 
     size_t bitLength;
-    uint8_t* arr = (uint8_t*) malloc(1024*sizeof(size_t));  // ! rozmiar narazie roboczy
+    // TODO dynarray? getMaxRank niepotrzebnie zapełnia pamięć gdy liczba jest za mała.
+    uint8_t* arr = (uint8_t*) malloc(sizeof(uint8_t)*getMaxRank());  // ! rozmiar narazie roboczy
 
     char c;
     size_t i = 0; // arrayPtr index
     int hexVal;
 
-    while ((c = getchar()) != '\n') {
+    while ((c = getchar()) != EOF) {
         // in ASCII, numbers and letters are ordered consecutively
         if ('0' <= c && c <= '9')
             hexVal = c - '0';
@@ -168,6 +173,20 @@ static uint8_t* getBinaryFromHex() {
     }
 
     return arr;
+}
+
+size_t getDimProduct() {
+    DA* dimensions = getDimensions();
+    size_t product = 1;
+    size_t a, b;
+    for (int i = 0; i < dimNum; i++) {
+        a = product;
+        b = daGet(dimensions, i);
+        product = a * b;
+        if (a != product / b)
+            exitWithError(1);
+    }
+    return product;
 }
 
 uint8_t* getBinaryFromR() {

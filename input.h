@@ -6,7 +6,9 @@
 
 void getFirstInput(DA* arrayPtr, int inputLine);
 size_t* getInput(int inputLine);
+
 size_t getDimNum();
+size_t getDimProduct();
 
 #define IN 1
 #define OUT 0

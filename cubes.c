@@ -7,19 +7,19 @@
  * isCubeFull determines whether a given cube is full or empty.
  * @param cube is an array of cube coordinates (z_1, z_2, ..., z_k).
  * @param dimensionsPtr should point to the dimensions array declared in main.
- * @param binaryRepArrayPtr should point to the binary representation of the 4th input line.
+ * @param binaryRep should point to the binary representation of the 4th input line.
  * @returns 1 when cube is full, 0 when empty.
  */
-
-// TODO uint8_t -> uint8_t
-int isCubeFull(size_t* cube, uint8_t* binaryRepArrayPtr) {
+int isCubeFull(size_t* cube, uint8_t* binaryRep) {
     size_t index;
 
-    if ((index = rankCube(cube)) == -1 || index > getMaxInputBitLength())
+    if ((index = rankCube(cube)) == -1)
         // error: cube pos outside dimension
         return -1;
+    else if (index > getMaxInputBitLength())
+        return 0;
     else
-        return getBit(binaryRepArrayPtr, getMaxInputBitLength() - 1 - index);
+        return getBit(binaryRep, getMaxInputBitLength() - 1 - index);
 }
 
 /**
@@ -51,12 +51,14 @@ size_t rankCube(size_t *cube) {
         }
         sum += (cube[k] - 1) * product;
     }
+    //printf("%zu\n", sum);
     return sum;
 }
 
 size_t* unrankCube(size_t cubeRank) {
-    size_t dimNum = getDimNum(), product;
+    size_t dimNum = getDimNum();
     size_t* cubeCords = malloc(dimNum*sizeof(size_t));
+    size_t product;
 
     for (size_t i = 0; i < dimNum; i++) {
         product = daGet(getDimensions(), i);
@@ -65,4 +67,14 @@ size_t* unrankCube(size_t cubeRank) {
     }
 
     return cubeCords;
+}
+
+size_t getMaxRank() {
+    size_t dimNum = getDimNum();
+    size_t* cubeCords = malloc(dimNum*sizeof(size_t));
+
+    for (size_t i = 0; i < dimNum; i++)
+        cubeCords[i] = daGet(getDimensions(), i);
+
+    return rankCube(cubeCords);
 }
