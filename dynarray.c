@@ -3,7 +3,7 @@
 // TODO ogarnąć
 // TODO dokumentacja
 
-static DA* daFind(DA *arrayPtr, size_t index, size_t *currentIndexPtr) {
+static DA *daFind(DA *arrayPtr, size_t index, size_t *currentIndexPtr) {
     DA *currentPtr;
 
     currentPtr = arrayPtr;
@@ -36,6 +36,23 @@ void daPut(DA *arrayPtr, size_t index, size_t data) {
 }
 
 size_t daGet(DA *arrayPtr, size_t index) {
+    DA *currentPtr;
+
+    size_t currentIndex;
+
+    currentPtr = daFind(arrayPtr, index, &currentIndex);
+    return currentPtr->data[currentIndex];
+}
+
+void daBut8Bit(DA *arrayPtr, size_t index, uint8_t data) {
+    DA *currentPtr;
+    size_t currentIndex;
+
+    currentPtr = daFind(arrayPtr, index, &currentIndex);
+    currentPtr->data[currentIndex] = data;
+}
+
+uint8_t daGet8Bit(DA *arrayPtr, size_t index) {
     DA *currentPtr;
 
     size_t currentIndex;

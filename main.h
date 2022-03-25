@@ -3,7 +3,8 @@
 
 #include "dynarray.h"
 
-DA* getDimensions();
-uint8_t* getBinaryRep();
+DA *getDimensions();
+
+DA *getBinaryRep();
 
 #endif //MALE_MAIN_H

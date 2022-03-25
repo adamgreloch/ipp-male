@@ -7,37 +7,53 @@
 #include <stdlib.h>
 
 static DA *dimensions;
-static uint8_t* binaryRep;
+static DA *binaryRep;
+
+static int debug = 0;
 
 int main() {
     dimensions = malloc(sizeof(DA));
     dimensions->next = NULL;
 
-    getFirstInput(dimensions, 1);
+    getFirstInput(dimensions);
 
-    size_t* startPos = getInput(2);
-    size_t* endPos = getInput(3);
+    size_t *startPos = getInput(2);
+    size_t *endPos = getInput(3);
 
-    printf("%d\n", getDimProduct());
+    if (debug) {
+        for (int i = 0; i < getDimNum(); i++) {
+            printf("%d ", daGet(dimensions, i));
+        }
+        putchar('\n');
+        for (int i = 0; i < getDimNum(); i++) {
+            printf("%d ", startPos[i]);
+        }
+        putchar('\n');
+        for (int i = 0; i < getDimNum(); i++) {
+            printf("%d ", endPos[i]);
+        }
+        putchar('\n');
+    }
+
+    if (debug) printf("%d\n", getDimProduct());
 
     binaryRep = getBinaryWallsRep();
-    // z tego co widzę, ta liczba może być też za mała, by
-    // być w stanie opisać labirynt. To też należałoby chyba sprawdzić.
 
-    if (!binaryRep)
-        // memory error: malloc failed
-        exitWithError(0);
-
+/*
     if (getchar() != EOF) {
         // input error: too many input lines
         free(dimensions);
         free(binaryRep);
         exitWithError(5);
     }
+*/
 
-//    for (int i = 0; i < getMaxInputBitLength(); i++) {
-//        printf("--%d", getBit(&binaryRep, i));
-//    }
+    if (debug) {
+        for (int i = 0; i < getMaxInputBitLength(); i++) {
+            printf("-%d", getBit(binaryRep, i));
+        }
+        putchar('\n');
+    }
 
     if (isCubeFull(startPos, binaryRep) != 0) {
         // input error: startPos filled or cube pos outside dimension
@@ -56,10 +72,10 @@ int main() {
     return 0;
 }
 
-DA* getDimensions() {
+DA *getDimensions() {
     return dimensions;
 }
 
-uint8_t* getBinaryRep() {
+uint8_t *getBinaryRep() {
     return binaryRep;
 }

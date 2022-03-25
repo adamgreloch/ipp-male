@@ -2,34 +2,28 @@
 
 GREEN='\033[0;32m'
 RED='\033[0;31m'
-WHITE='\033[0;37m'
+#WHITE='\033[0;37m'
 RESET='\033[0m'
+
+rm -f "$2"/*.outp
+rm -f "$2"/*.errp
 
 for f in "$2"/*.in
 do
     # todo: valgrind $VALARGS $1 < $file 2> /tmp/lab.err > /tmp/lab.out
-    ./"$1" < "$f" > "${f%in}outp"
+    ./"$1" < "$f" > "${f%in}outp" 2>"${f%in}errp"
 done
 
 for f in "$2"/*.in
 do
     echo -n "${f#*/} ";
-    if [ -s "${f%in}err" ]
+    if diff "${f%in}errp" "${f%in}err" > /dev/null 1>&1 &&
+    diff "${f%in}outp" "${f%in}out" > /dev/null 1>&1
     then
-        if diff "${f%in}err" "${f%in}outp" > /dev/null 1>&1
-        then
-            echo -e "${GREEN}passed${RESET}";
-        else
-            echo -e "${RED}failed${RESET}"
-            diff -y -W 30 "${f%in}outp" "${f%in}err"
-        fi
+        echo -e "${GREEN}passed${RESET}";
     else
-        if diff "${f%in}out" "${f%in}outp" > /dev/null 2>&1
-        then
-            echo -e "${GREEN}passed${RESET}";
-        else
-            echo -e "${RED}failed${RESET}"
-            diff -y -W 30 "${f%in}outp" "${f%in}out"
-        fi
+        echo -e "${RED}failed${RESET}"
+        diff -y -W 30 "${f%in}outp" "${f%in}out"
+        diff -y -W 30 "${f%in}errp" "${f%in}err"
     fi
 done

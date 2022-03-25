@@ -1,5 +1,6 @@
 #pragma clang diagnostic push
 #pragma ide diagnostic ignored "cppcoreguidelines-narrowing-conversions"
+
 #include "input.h"
 #include "err.h"
 #include "cubes.h"
@@ -10,8 +11,8 @@
 static size_t dimNum = -1;
 static size_t maxInputBitLength = 0;
 
-static uint8_t* getBinaryFromHex();
-static uint8_t* getBinaryFromR();
+static DA *getBinaryFromHex();
+static DA *getBinaryFromR();
 
 // TODO uwzglednic wszystkie biale znaki
 
@@ -25,8 +26,8 @@ static size_t getNum(char str[], size_t i, int inputLine) {
         return num;
 }
 
-size_t* getInput(int inputLine) {
-    size_t* inputArr = malloc(dimNum * sizeof(size_t));
+size_t *getInput(int inputLine) {
+    size_t *inputArr = malloc(dimNum * sizeof(size_t));
 
     if (!inputArr)
         // error: malloc failed
@@ -38,7 +39,8 @@ size_t* getInput(int inputLine) {
     char c;
 
     while ((c = getchar()) != '\n') {
-        if (i >= sizeof(size_t)) { // TODO ERROR 0 niemal na pewno nie powinien być tak wykrywany
+        if (i >=
+            sizeof(size_t)) { // TODO ERROR 0 niemal na pewno nie powinien być tak wykrywany
             // input error: labyrinth too big
             free(inputArr);
             exitWithError(0);
@@ -74,7 +76,7 @@ size_t* getInput(int inputLine) {
     return inputArr;
 }
 
-void getFirstInput(DA* arrayPtr, int inputLine) {
+void getFirstInput(DA *arrayPtr) {
     char str[sizeof(size_t)];
     int state = OUT;
     size_t i = 0, k = 0;
@@ -90,7 +92,7 @@ void getFirstInput(DA* arrayPtr, int inputLine) {
                 i++;
             } else {
                 state = OUT;
-                daPut(arrayPtr, k, getNum(str, i, inputLine));
+                daPut(arrayPtr, k, getNum(str, i, 1));
                 k++;
                 i = 0;
             }
@@ -102,7 +104,7 @@ void getFirstInput(DA* arrayPtr, int inputLine) {
     }
 
     if (state == IN) {
-        daPut(arrayPtr, k, getNum(str, i, inputLine));
+        daPut(arrayPtr, k, getNum(str, i, 1));
         k++;
     }
 
@@ -123,7 +125,7 @@ size_t getDimNum() {
 /// @param [in] arrayPtr is a pointer to an array destined to store
 /// the binary expansion.
 /// @return pointer to an array of two hex values per cell
-uint8_t* getBinaryWallsRep() {
+DA *getBinaryWallsRep() {
     char c;
     int inputType = -2; // 0 for hex, 1 for R, -1 for in-between state
 
@@ -140,7 +142,7 @@ uint8_t* getBinaryWallsRep() {
 
 /// getBinaryFromHex converts Hex number to Binary
 /// @return array of bits
-static uint8_t* getBinaryFromHex() {
+static DA *getBinaryFromHex() {
     // To store binary expansion we will use an array of chars.
     // 1 char can store 8 bits. Since 1 hex digit represents 4 bits,
     // we can store 2 hex values in 1 char thus optimizing memory usage.
@@ -149,13 +151,18 @@ static uint8_t* getBinaryFromHex() {
 
     size_t bitLength;
     // TODO dynarray? getMaxRank niepotrzebnie zapełnia pamięć gdy liczba jest za mała.
-    uint8_t* arr = (uint8_t*) malloc(sizeof(uint8_t)*getMaxRank());  // ! rozmiar narazie roboczy
+//    uint8_t* arr = (uint8_t*) malloc(sizeof(uint8_t)*getMaxRank());  // ! rozmiar narazie roboczy
+    DA *arr = malloc(sizeof(DA));
+    arr->next = NULL;
 
     char c;
     size_t i = 0; // arrayPtr index
     int hexVal;
+    int leadingZeros = 1;
 
-    while ((c = getchar()) != EOF) {
+    while ((c = getchar()) != EOF && !isspace(c))
+        if (!leadingZeros || c != '0') {
+        leadingZeros = 0;
         // in ASCII, numbers and letters are ordered consecutively
         if ('0' <= c && c <= '9')
             hexVal = c - '0';
@@ -164,7 +171,7 @@ static uint8_t* getBinaryFromHex() {
         else if ('a' <= c && c <= 'f')
             hexVal = 10 + c - 'a';
 
-        bitLength = setBitsFromHex(&arr, i, hexVal);
+        bitLength = setBitsFromHex(arr, i, hexVal);
 
         if (bitLength > maxInputBitLength)
             maxInputBitLength = bitLength;
@@ -176,7 +183,7 @@ static uint8_t* getBinaryFromHex() {
 }
 
 size_t getDimProduct() {
-    DA* dimensions = getDimensions();
+    DA *dimensions = getDimensions();
     size_t product = 1;
     size_t a, b;
     for (int i = 0; i < dimNum; i++) {
@@ -189,9 +196,9 @@ size_t getDimProduct() {
     return product;
 }
 
-uint8_t* getBinaryFromR() {
+DA *getBinaryFromR() {
 
-    uint8_t* arr = (uint8_t*) malloc(1024*sizeof(size_t));
+    uint8_t *arr = (uint8_t *) malloc(1024 * sizeof(size_t));
     // TODO dorobić R
     size_t wallConfigNum;
     uint32_t rFormat[5];
