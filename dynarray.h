@@ -18,7 +18,7 @@ extern size_t daGet(DA *arrayPtr, size_t index);
 
 extern void daPut(DA *arrayPtr, size_t index, size_t data);
 
-void daBut8Bit(DA *arrayPtr, size_t index, uint8_t data);
+void daPut8Bit(DA *arrayPtr, size_t index, uint8_t data);
 
 uint8_t daGet8Bit(DA *arrayPtr, size_t index);
 

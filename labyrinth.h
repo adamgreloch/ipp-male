@@ -5,6 +5,6 @@
 #include "stdint.h"
 #include <stddef.h>
 
-size_t findPath(size_t *startPos, size_t *endPos, DA *binaryRep);
+int64_t findPath(size_t *startPos, size_t *endPos, DA *binaryRep);
 
 #endif //MALE_LABYRINTH_H

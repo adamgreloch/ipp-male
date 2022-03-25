@@ -117,7 +117,7 @@ static void expand(size_t rankedPos, DA *binaryRep, int mod) {
     free(pos);
 }
 
-static size_t
+static int64_t
 findPathLength(size_t rankedStartPos, size_t *endPos, uint8_t *visited) {
     size_t dimNum = getDimNum();
     size_t length = 0;
@@ -158,7 +158,7 @@ findPathLength(size_t rankedStartPos, size_t *endPos, uint8_t *visited) {
     return length;
 }
 
-size_t findPath(size_t *startPos, size_t *endPos, DA *binaryRep) {
+int64_t findPath(size_t *startPos, size_t *endPos, DA *binaryRep) {
     visited = (uint8_t *) malloc(
             sizeof(uint8_t) * getMaxRank());  // ! rozmiar narazie roboczy
 

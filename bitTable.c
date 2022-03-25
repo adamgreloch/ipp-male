@@ -12,14 +12,20 @@ int getBit(DA *arrayPtr, size_t bitIndex) {
     return (n & (1 << k)) >> k;
 }
 
-void setBit(uint8_t **arrayPtr, size_t bitIndex, int bitValue) {
+void setBit(DA *arrayPtr, size_t bitIndex, int bitValue) {
     size_t cellIndex = bitIndex / 8;
     int k = 7 - bitIndex % 8;
+    uint8_t cell;
 
-    if (bitValue)
-        (*arrayPtr)[cellIndex] |= (1 << k);
-    else
-        (*arrayPtr)[cellIndex] &= ~(1 << k);
+    if (bitValue) {
+        cell = daGet8Bit(arrayPtr, cellIndex);
+        daPut8Bit(arrayPtr, cellIndex, cell | (1 << k));
+        //(*arrayPtr)[cellIndex] |= (1 << k);
+    } else {
+        cell = daGet8Bit(arrayPtr, cellIndex);
+        daPut8Bit(arrayPtr, cellIndex, cell & ~(1 << k));
+        //(*arrayPtr)[cellIndex] &= ~(1 << k);
+    }
 }
 
 void setTwoBit(uint8_t **arrayPtr, size_t twoBitIndex, int twoBitValue) {
@@ -50,14 +56,24 @@ size_t setBitsFromHex(DA *arrayPtr, size_t valueIndex, int hexValue) {
     uint8_t cell;
 
     if (valueIndex % 2 == 0) {
-        daBut8Bit(arrayPtr, cellIndex, hexValue << 4);
+        daPut8Bit(arrayPtr, cellIndex, hexValue << 4);
         //(*arrayPtr)[cellIndex] = hexValue << 4; // add 4 bits to the left
         bitLength = 8 * (cellIndex) + 4;
     } else {
         cell = daGet8Bit(arrayPtr, cellIndex);
-        daBut8Bit(arrayPtr, cellIndex, cell | hexValue);
+        daPut8Bit(arrayPtr, cellIndex, cell | hexValue);
         //(*arrayPtr)[cellIndex] |= hexValue; // add 4 bits to the right
         bitLength = 8 * (cellIndex) + 4;
     }
     return bitLength;
+}
+
+size_t setBitsFromR(DA *arrayPtr, size_t remainder) {
+    setBit(arrayPtr, remainder, 1);
+
+    if (remainder + UINT32_MAX < SIZE_MAX) {
+        setBit(arrayPtr, remainder + UINT32_MAX, 1);
+        return remainder + UINT32_MAX;
+    } else
+        return remainder;
 }

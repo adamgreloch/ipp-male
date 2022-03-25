@@ -6,7 +6,7 @@
 
 void getFirstInput(DA *arrayPtr);
 
-size_t *getInput(int inputLine);
+size_t *getInput(int inputLine, size_t argumentsCount);
 
 size_t getDimNum();
 

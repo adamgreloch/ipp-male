@@ -44,7 +44,7 @@ size_t daGet(DA *arrayPtr, size_t index) {
     return currentPtr->data[currentIndex];
 }
 
-void daBut8Bit(DA *arrayPtr, size_t index, uint8_t data) {
+void daPut8Bit(DA *arrayPtr, size_t index, uint8_t data) {
     DA *currentPtr;
     size_t currentIndex;
 

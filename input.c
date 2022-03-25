@@ -8,6 +8,8 @@
 #include "bitTable.h"
 #include <stdint.h>
 
+static int debug = 0;
+
 static size_t dimNum = -1;
 static size_t maxInputBitLength = 0;
 
@@ -26,14 +28,14 @@ static size_t getNum(char str[], size_t i, int inputLine) {
         return num;
 }
 
-size_t *getInput(int inputLine) {
-    size_t *inputArr = malloc(dimNum * sizeof(size_t));
+size_t *getInput(int inputLine, size_t argumentsCount) {
+    size_t *inputArr = malloc(argumentsCount * sizeof(size_t));
 
     if (!inputArr)
         // error: malloc failed
         exitWithError(0);
 
-    char str[sizeof(size_t)];
+    char *str = malloc(sizeof(char)*UINT16_MAX);
     int state = OUT;
     size_t i = 0, k = 0;
     char c;
@@ -46,16 +48,17 @@ size_t *getInput(int inputLine) {
             exitWithError(0);
         }
         if (state == IN) {
-            if (c != ' ') {
+            if (!isspace(c)) {
                 str[i] = c;
                 i++;
             } else {
                 state = OUT;
                 inputArr[k] = getNum(str, i, inputLine);
+                if (debug) printf("%s -> %zu (k=%zu)\n", str, inputArr[k], k);
                 k++;
                 i = 0;
             }
-        } else if (c != ' ') {
+        } else if (!isspace(c)) {
             state = IN;
             str[i] = c;
             i++;
@@ -64,20 +67,28 @@ size_t *getInput(int inputLine) {
 
     if (state == IN) {
         inputArr[k] = getNum(str, i, inputLine);
+        if (debug) printf("%s -> %zu (k=%zu)\n", str, inputArr[k], k);
         k++;
     }
 
-    if (k != dimNum) {
-        // input error: number of arguments is mismatched throughout the input lines
+    if (k != argumentsCount) {
+        // input error: unexpected number of input arguments
         free(inputArr);
         exitWithError(inputLine);
     }
+
+    free(str);
+
+    if (debug)
+        for (int j = 0; j < dimNum; j++) {
+            printf("inputArr[%zu] = %zu\n", j, inputArr[j]);
+        }
 
     return inputArr;
 }
 
 void getFirstInput(DA *arrayPtr) {
-    char str[sizeof(size_t)];
+    char *str = malloc(sizeof(char)*UINT16_MAX);
     int state = OUT;
     size_t i = 0, k = 0;
     char c;
@@ -87,7 +98,7 @@ void getFirstInput(DA *arrayPtr) {
             // input error: labyrinth too big
             exitWithError(0);
         if (state == IN) {
-            if (c != ' ') {
+            if (!isspace(c)) {
                 str[i] = c;
                 i++;
             } else {
@@ -96,7 +107,7 @@ void getFirstInput(DA *arrayPtr) {
                 k++;
                 i = 0;
             }
-        } else if (c != ' ') {
+        } else if (!isspace(c)) {
             state = IN;
             str[i] = c;
             i++;
@@ -114,6 +125,8 @@ void getFirstInput(DA *arrayPtr) {
 
     if (dimNum == -1)
         dimNum = k;
+
+    free(str);
 }
 
 size_t getDimNum() {
@@ -140,6 +153,8 @@ DA *getBinaryWallsRep() {
         return getBinaryFromR();
 }
 
+// TODO better names than "arr"
+
 /// getBinaryFromHex converts Hex number to Binary
 /// @return array of bits
 static DA *getBinaryFromHex() {
@@ -150,13 +165,11 @@ static DA *getBinaryFromHex() {
     // of storage.
 
     size_t bitLength;
-    // TODO dynarray? getMaxRank niepotrzebnie zapełnia pamięć gdy liczba jest za mała.
-//    uint8_t* arr = (uint8_t*) malloc(sizeof(uint8_t)*getMaxRank());  // ! rozmiar narazie roboczy
     DA *arr = malloc(sizeof(DA));
     arr->next = NULL;
 
     char c;
-    size_t i = 0; // arrayPtr index
+    size_t i = 0; // arr index
     int hexVal;
     int leadingZeros = 1;
 
@@ -182,6 +195,47 @@ static DA *getBinaryFromHex() {
     return arr;
 }
 
+DA *getBinaryFromR() {
+    size_t bitLength;
+    DA *arr = malloc(sizeof(DA));
+    arr->next = NULL;
+    size_t dimProduct = getDimProduct();
+
+    size_t *params = getInput(4, 5);
+    uint32_t a = params[0], b = params[1],
+        m = params[2], r = params[3];
+
+    if (debug) {
+        for (int i = 0; i < 5; i++)
+            printf("params[%lu] = %lu\n", i, params[i]);
+    }
+
+    uint32_t *sw = malloc(r*sizeof(uint32_t));
+    // We will later reuse the sw array for storing w_i numbers.
+    // Apart from calculating w_i's, s_i array is useless.
+
+    sw[0] = params[4];
+    free(params);
+
+    if (m == 0) return -1;
+
+    for (size_t i = 0; i < r; i++)
+        sw[i] = (a * sw[i - 1] + b) % m;
+
+    for (size_t i = 0; i < r; i++)
+        sw[i] %= dimProduct;
+
+    for (size_t i = 0; i < r; i++) {
+        // TODO check if this generates bitTable properly
+        bitLength = setBitsFromR(arr, sw[i]);
+
+        if (bitLength > maxInputBitLength)
+            maxInputBitLength = bitLength;
+    }
+
+    return arr;
+}
+
 size_t getDimProduct() {
     DA *dimensions = getDimensions();
     size_t product = 1;
@@ -194,15 +248,6 @@ size_t getDimProduct() {
             exitWithError(1);
     }
     return product;
-}
-
-DA *getBinaryFromR() {
-
-    uint8_t *arr = (uint8_t *) malloc(1024 * sizeof(size_t));
-    // TODO dorobić R
-    size_t wallConfigNum;
-    uint32_t rFormat[5];
-    return arr;
 }
 
 size_t getMaxInputBitLength() {

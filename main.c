@@ -17,8 +17,8 @@ int main() {
 
     getFirstInput(dimensions);
 
-    size_t *startPos = getInput(2);
-    size_t *endPos = getInput(3);
+    size_t *startPos = getInput(2, getDimNum());
+    size_t *endPos = getInput(3, getDimNum());
 
     if (debug) {
         for (int i = 0; i < getDimNum(); i++) {
