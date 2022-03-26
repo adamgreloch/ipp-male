@@ -9,7 +9,7 @@
 static DA *dimensions;
 static DA *binaryRep;
 
-static int debug = 0;
+static int debug_main = 0;
 
 int main() {
     dimensions = malloc(sizeof(DA));
@@ -20,7 +20,7 @@ int main() {
     size_t *startPos = getInput(2, getDimNum());
     size_t *endPos = getInput(3, getDimNum());
 
-    if (debug) {
+    if (debug_main) {
         for (int i = 0; i < getDimNum(); i++) {
             printf("%d ", daGet(dimensions, i));
         }
@@ -35,7 +35,7 @@ int main() {
         putchar('\n');
     }
 
-    if (debug) printf("%d\n", getDimProduct());
+    if (debug_main) printf("%d\n", getDimProduct(getDimNum()));
 
     binaryRep = getBinaryWallsRep();
 
@@ -48,21 +48,26 @@ int main() {
     }
 */
 
-    if (debug) {
+    if (debug_main) {
         for (int i = 0; i < getMaxInputBitLength(); i++) {
             printf("-%d", getBit(binaryRep, i));
         }
         putchar('\n');
     }
 
-    if (isCubeFull(startPos, binaryRep) != 0) {
+    if (isCubeFull(rankCube(startPos), binaryRep) != 0) {
         // input error: startPos filled or cube pos outside dimension
         free(dimensions);
         free(binaryRep);
         exitWithError(2);
     }
 
-    printf("%d\n", findPath(startPos, endPos, binaryRep));
+    uint64_t pathLength = findPath(startPos, endPos, binaryRep);
+
+    if (pathLength == -1)
+        printf("NO WAY");
+    else
+        printf("%d\n", pathLength);
 
     free(startPos);
     free(endPos);
@@ -76,6 +81,6 @@ DA *getDimensions() {
     return dimensions;
 }
 
-uint8_t *getBinaryRep() {
+DA *getBinaryRep() {
     return binaryRep;
 }

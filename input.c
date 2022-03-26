@@ -8,15 +8,14 @@
 #include "bitTable.h"
 #include <stdint.h>
 
-static int debug = 0;
+static int debug_input = 0;
 
 static size_t dimNum = -1;
 static size_t maxInputBitLength = 0;
 
 static DA *getBinaryFromHex();
-static DA *getBinaryFromR();
 
-// TODO uwzglednic wszystkie biale znaki
+static DA *getBinaryFromR();
 
 static size_t getNum(char str[], size_t i, int inputLine) {
     str[i] = ' ';
@@ -35,7 +34,7 @@ size_t *getInput(int inputLine, size_t argumentsCount) {
         // error: malloc failed
         exitWithError(0);
 
-    char *str = malloc(sizeof(char)*UINT16_MAX);
+    char *str = malloc(sizeof(char) * UINT16_MAX);
     int state = OUT;
     size_t i = 0, k = 0;
     char c;
@@ -54,7 +53,8 @@ size_t *getInput(int inputLine, size_t argumentsCount) {
             } else {
                 state = OUT;
                 inputArr[k] = getNum(str, i, inputLine);
-                if (debug) printf("%s -> %zu (k=%zu)\n", str, inputArr[k], k);
+                if (debug_input)
+                    printf("%s -> %zu (k=%zu)\n", str, inputArr[k], k);
                 k++;
                 i = 0;
             }
@@ -67,7 +67,7 @@ size_t *getInput(int inputLine, size_t argumentsCount) {
 
     if (state == IN) {
         inputArr[k] = getNum(str, i, inputLine);
-        if (debug) printf("%s -> %zu (k=%zu)\n", str, inputArr[k], k);
+        if (debug_input) printf("%s -> %zu (k=%zu)\n", str, inputArr[k], k);
         k++;
     }
 
@@ -79,7 +79,7 @@ size_t *getInput(int inputLine, size_t argumentsCount) {
 
     free(str);
 
-    if (debug)
+    if (debug_input)
         for (int j = 0; j < dimNum; j++) {
             printf("inputArr[%zu] = %zu\n", j, inputArr[j]);
         }
@@ -88,7 +88,7 @@ size_t *getInput(int inputLine, size_t argumentsCount) {
 }
 
 void getFirstInput(DA *arrayPtr) {
-    char *str = malloc(sizeof(char)*UINT16_MAX);
+    char *str = malloc(sizeof(char) * UINT16_MAX);
     int state = OUT;
     size_t i = 0, k = 0;
     char c;
@@ -129,15 +129,13 @@ void getFirstInput(DA *arrayPtr) {
     free(str);
 }
 
-size_t getDimNum() {
-    return dimNum;
-}
-
-/// getBinaryWallsRep detects fourth line input type and applies appropriate
-/// input parsing function to get a binary expansion of the number in that line.
-/// @param [in] arrayPtr is a pointer to an array destined to store
-/// the binary expansion.
-/// @return pointer to an array of two hex values per cell
+/***
+ *  getBinaryWallsRep detects fourth line input type and applies appropriate
+ *  input parsing function to get a binary expansion of the number in that line.
+ *  @param [in] arrayPtr is a pointer to an array destined to store
+ *  the binary expansion.
+ *  @return pointer to an array of two hex values per cell
+ */
 DA *getBinaryWallsRep() {
     char c;
     int inputType = -2; // 0 for hex, 1 for R, -1 for in-between state
@@ -155,10 +153,12 @@ DA *getBinaryWallsRep() {
 
 // TODO better names than "arr"
 
-/// getBinaryFromHex converts Hex number to Binary
-/// @return array of bits
+/***
+ * getBinaryFromHex converts Hex number to Binary
+ * @return array of bits
+ */
 static DA *getBinaryFromHex() {
-    // To store binary expansion we will use an array of chars.
+    // To store the binary expansion we will use an array of chars.
     // 1 char can store 8 bits. Since 1 hex digit represents 4 bits,
     // we can store 2 hex values in 1 char thus optimizing memory usage.
     // The bitTable module implements intuitive accessors for such type
@@ -166,6 +166,10 @@ static DA *getBinaryFromHex() {
 
     size_t bitLength;
     DA *arr = malloc(sizeof(DA));
+
+    for (int i = 0; i < BLOCK_SIZE; i++)
+        arr->data[i] = 0;
+
     arr->next = NULL;
 
     char c;
@@ -175,42 +179,47 @@ static DA *getBinaryFromHex() {
 
     while ((c = getchar()) != EOF && !isspace(c))
         if (!leadingZeros || c != '0') {
-        leadingZeros = 0;
-        // in ASCII, numbers and letters are ordered consecutively
-        if ('0' <= c && c <= '9')
-            hexVal = c - '0';
-        else if ('A' <= c && c <= 'F')
-            hexVal = 10 + c - 'A';
-        else if ('a' <= c && c <= 'f')
-            hexVal = 10 + c - 'a';
+            leadingZeros = 0;
+            // in ASCII, numbers and letters are ordered consecutively
+            if ('0' <= c && c <= '9')
+                hexVal = c - '0';
+            else if ('A' <= c && c <= 'F')
+                hexVal = 10 + c - 'A';
+            else if ('a' <= c && c <= 'f')
+                hexVal = 10 + c - 'a';
 
-        bitLength = setBitsFromHex(arr, i, hexVal);
+            bitLength = setBitsFromHex(arr, i, hexVal);
 
-        if (bitLength > maxInputBitLength)
-            maxInputBitLength = bitLength;
+            if (bitLength > maxInputBitLength)
+                maxInputBitLength = bitLength;
 
-        i++;
-    }
+            i++;
+        }
 
     return arr;
 }
 
 DA *getBinaryFromR() {
     size_t bitLength;
+
     DA *arr = malloc(sizeof(DA));
     arr->next = NULL;
-    size_t dimProduct = getDimProduct();
+
+    for (int i = 0; i < BLOCK_SIZE; i++)
+        arr->data[i] = 0;
+
+    size_t dimProduct = getDimProduct(dimNum - 1);
 
     size_t *params = getInput(4, 5);
     uint32_t a = params[0], b = params[1],
-        m = params[2], r = params[3];
+            m = params[2], r = params[3];
 
-    if (debug) {
+    if (debug_input) {
         for (int i = 0; i < 5; i++)
             printf("params[%lu] = %lu\n", i, params[i]);
     }
 
-    uint32_t *sw = malloc(r*sizeof(uint32_t));
+    uint32_t *sw = malloc(r * sizeof(uint32_t));
     // We will later reuse the sw array for storing w_i numbers.
     // Apart from calculating w_i's, s_i array is useless.
 
@@ -222,11 +231,12 @@ DA *getBinaryFromR() {
     for (size_t i = 0; i < r; i++)
         sw[i] = (a * sw[i - 1] + b) % m;
 
-    for (size_t i = 0; i < r; i++)
+    for (size_t i = 0; i < r; i++) {
         sw[i] %= dimProduct;
+        if (debug_input) printf("w[%lu] = %lu\n", i, sw[i]);
+    }
 
     for (size_t i = 0; i < r; i++) {
-        // TODO check if this generates bitTable properly
         bitLength = setBitsFromR(arr, sw[i]);
 
         if (bitLength > maxInputBitLength)
@@ -236,20 +246,43 @@ DA *getBinaryFromR() {
     return arr;
 }
 
-size_t getDimProduct() {
-    DA *dimensions = getDimensions();
-    size_t product = 1;
-    size_t a, b;
-    for (int i = 0; i < dimNum; i++) {
-        a = product;
-        b = daGet(dimensions, i);
-        product = a * b;
-        if (a != product / b)
-            exitWithError(1);
+size_t *dimProductsArray;
+
+size_t getDimProduct(size_t maxNIndex) {
+    if (!dimProductsArray) {
+        dimProductsArray = malloc(sizeof(size_t) * dimNum);
+        dimProductsArray[0] = daGet(getDimensions(), 0);
+        for (size_t i = 1; i < dimNum; i++)
+            dimProductsArray[i] = 0;
     }
-    return product;
+    if (maxNIndex < 1) return 1;
+    else if (maxNIndex > dimNum) {
+        if (debug_input)
+            printf("# maxNIndex = %zu > dimNum!\n", maxNIndex);
+        return -1;
+    }
+    else if (dimProductsArray[maxNIndex - 1] != 0) {
+        if (debug_input)
+            printf("# dimProductsArray[%d] = %zu (memoized) \n", maxNIndex - 1,
+                   dimProductsArray[maxNIndex - 1]);
+        return dimProductsArray[maxNIndex - 1];
+    } else {
+        size_t product, a, b;
+
+        a = getDimProduct(maxNIndex - 1);
+        b = daGet(getDimensions(), maxNIndex - 1);
+        product = a * b;
+
+        if (a != product / b) exitWithError(1);
+
+        if (debug_input)
+            printf("# dimProductsArray[%d] = %zu\n", maxNIndex - 1, product);
+
+        dimProductsArray[maxNIndex - 1] = product;
+        return product;
+    }
 }
 
-size_t getMaxInputBitLength() {
-    return maxInputBitLength;
-}
+size_t getDimNum() { return dimNum; }
+
+size_t getMaxInputBitLength() { return maxInputBitLength; }

@@ -3,27 +3,23 @@
 #include "main.h"
 #include <stdlib.h>
 
-static int debug = 0;
+static int debug_cubes = 0;
 
 /**
  * isCubeFull determines whether a given cube is full or empty.
+ * Assumes that rankedCube points to a proper indimensional cube.
  * @param cube is an array of cube coordinates (z_1, z_2, ..., z_k).
  * @param dimensionsPtr should point to the dimensions array declared in main.
  * @param binaryRep should point to the binary representation of the 4th input line.
  * @returns 1 when cube is full, 0 when empty.
  */
-int isCubeFull(size_t *cube, DA *binaryRep) {
-    size_t index;
-
-    if ((index = rankCube(cube)) == -1)
-        // Error: cube position is outside dimension.
-        return -1;
-    else if (index > getMaxInputBitLength())
+int isCubeFull(size_t rankedCube, DA *binaryRep) {
+    if (rankedCube >= getMaxInputBitLength())
         // Index points to a cube guaranteed to be empty.
         return 0;
     else {
-        if (debug) printf("%zu\n", getMaxInputBitLength() - 1 - index);
-        return getBit(binaryRep, getMaxInputBitLength() - 1 - index);
+        if (debug_cubes) printf("isCubeFull index: %zu\n", getMaxInputBitLength() - 1 - rankedCube);
+        return getBit(binaryRep, getMaxInputBitLength() - 1 - rankedCube);
     }
 }
 
@@ -48,7 +44,7 @@ size_t rankCube(size_t *cube) {
         product = 1;
         for (size_t i = 0; i < k; i++) {
             dim = daGet(dimensions, i);
-            if (debug) printf("# cube = %zu, dim = %zu\n", cube[i], dim);
+            if (debug_cubes) printf("# cube = %zu, dim = %zu\n", cube[i], dim);
             if (cube[i] > dim)
                 // error: cube pos outside dimension
                 return -1;
@@ -57,7 +53,7 @@ size_t rankCube(size_t *cube) {
         }
         sum += (cube[k] - 1) * product;
     }
-    if (debug) printf("%zu\n", sum);
+    if (debug_cubes) printf("rankCube: %zu\n", sum);
     return sum;
 }
 
@@ -73,6 +69,20 @@ size_t *unrankCube(size_t cubeRank) {
     }
 
     return cubeCords;
+}
+
+/***
+ * moveRank moves from one cube to another in one dimension by a integer steps.
+ * @param cubeRank
+ * @param dim
+ * @param steps
+ * @return destination rank
+ */
+size_t moveRank(size_t cubeRank, size_t dim, int steps) {
+    if (dim == 0)
+        return cubeRank + steps;
+    else
+        return cubeRank + steps * getDimProduct(dim);
 }
 
 size_t getMaxRank() {

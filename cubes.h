@@ -4,11 +4,13 @@
 #include "input.h"
 #include "stdint.h"
 
-int isCubeFull(size_t *cube, DA *binaryRep);
+int isCubeFull(size_t rankedCube, DA *binaryRep);
 
 size_t rankCube(size_t *cube);
 
 size_t *unrankCube(size_t cubeRank);
+
+size_t moveRank(size_t cubeRank, size_t dim, int steps);
 
 size_t getMaxRank();
 

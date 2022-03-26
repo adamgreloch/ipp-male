@@ -10,7 +10,7 @@ size_t *getInput(int inputLine, size_t argumentsCount);
 
 size_t getDimNum();
 
-size_t getDimProduct();
+size_t getDimProduct(size_t maxNIndex);
 
 #define IN 1
 #define OUT 0
