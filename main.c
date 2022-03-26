@@ -22,20 +22,20 @@ int main() {
 
     if (debug_main) {
         for (int i = 0; i < getDimNum(); i++) {
-            printf("%d ", daGet(dimensions, i));
+            printf("%zu ", daGet(dimensions, i));
         }
         putchar('\n');
         for (int i = 0; i < getDimNum(); i++) {
-            printf("%d ", startPos[i]);
+            printf("%zu ", startPos[i]);
         }
         putchar('\n');
         for (int i = 0; i < getDimNum(); i++) {
-            printf("%d ", endPos[i]);
+            printf("%zu ", endPos[i]);
         }
         putchar('\n');
     }
 
-    if (debug_main) printf("%d\n", getDimProduct(getDimNum()));
+    if (debug_main) printf("%zu\n", getDimProduct(getDimNum()));
 
     binaryRep = getBinaryWallsRep();
 
@@ -49,10 +49,10 @@ int main() {
 */
 
     if (debug_main) {
-        for (int i = 0; i < getMaxInputBitLength(); i++) {
+        for (int i = 0; i <= getMaxInputBitLength(); i++) {
             printf("-%d", getBit(binaryRep, i));
         }
-        putchar('\n');
+        printf(" -- %d\n", getMaxInputBitLength());
     }
 
     if (isCubeFull(rankCube(startPos), binaryRep) != 0) {
@@ -65,7 +65,7 @@ int main() {
     uint64_t pathLength = findPath(startPos, endPos, binaryRep);
 
     if (pathLength == -1)
-        printf("NO WAY");
+        printf("NO WAY\n");
     else
         printf("%d\n", pathLength);
 

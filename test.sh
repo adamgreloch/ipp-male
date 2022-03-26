@@ -12,10 +12,7 @@ for f in "$2"/*.in
 do
     # todo: valgrind $VALARGS $1 < $file 2> /tmp/lab.err > /tmp/lab.out
     ./"$1" < "$f" > "${f%in}outp" 2>"${f%in}errp"
-done
 
-for f in "$2"/*.in
-do
     echo -n "${f#*/} ";
     if diff "${f%in}errp" "${f%in}err" > /dev/null 1>&1 &&
     diff "${f%in}outp" "${f%in}out" > /dev/null 1>&1

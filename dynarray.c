@@ -20,8 +20,8 @@ static DA *daFind(DA *arrayPtr, size_t index, size_t *currentIndexPtr) {
             }
 
             // TODO check if necessary
-            for (int i = 0; i < BLOCK_SIZE; i++)
-                currentPtr->next->data[i] = 0;
+//            for (int i = 0; i < BLOCK_SIZE; i++)
+//                currentPtr->next->data[i] = 0;
 
             memset(currentPtr->next, '\0', sizeof(DA));
         }

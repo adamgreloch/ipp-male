@@ -18,7 +18,9 @@ int isCubeFull(size_t rankedCube, DA *binaryRep) {
         // Index points to a cube guaranteed to be empty.
         return 0;
     else {
-        if (debug_cubes) printf("isCubeFull index: %zu\n", getMaxInputBitLength() - 1 - rankedCube);
+        if (debug_cubes)
+            printf("isCubeFull index: %zu\n",
+                   getMaxInputBitLength() - 1 - rankedCube);
         return getBit(binaryRep, getMaxInputBitLength() - 1 - rankedCube);
     }
 }
@@ -86,11 +88,15 @@ size_t moveRank(size_t cubeRank, size_t dim, int steps) {
 }
 
 size_t getMaxRank() {
+    // TODO check if memoization would be useful
     size_t dimNum = getDimNum();
     size_t *cubeCords = malloc(dimNum * sizeof(size_t));
 
     for (size_t i = 0; i < dimNum; i++)
         cubeCords[i] = daGet(getDimensions(), i);
 
-    return rankCube(cubeCords);
+    size_t maxRank = rankCube(cubeCords);
+    free(cubeCords);
+
+    return maxRank;
 }

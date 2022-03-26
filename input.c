@@ -17,10 +17,14 @@ static DA *getBinaryFromHex();
 
 static DA *getBinaryFromR();
 
-static size_t getNum(char str[], size_t i, int inputLine) {
-    str[i] = ' ';
-    size_t num = strtoull(str, NULL, 10);
-    if (num < 1)
+static size_t getNum(char *str, size_t i, int inputLine) {
+    size_t j = 0;
+    size_t num = 0;
+    while (j < i) {
+        num = 10 * num + str[j] - '0';
+        j++;
+    }
+    if (inputLine != 4 && num < 1)
         // input error: numbers have to be positive
         exitWithError(inputLine);
     else
@@ -40,12 +44,14 @@ size_t *getInput(int inputLine, size_t argumentsCount) {
     char c;
 
     while ((c = getchar()) != '\n') {
+/*
         if (i >=
             sizeof(size_t)) { // TODO ERROR 0 niemal na pewno nie powinien być tak wykrywany
             // input error: labyrinth too big
             free(inputArr);
             exitWithError(0);
         }
+*/
         if (state == IN) {
             if (!isspace(c)) {
                 str[i] = c;
@@ -94,9 +100,11 @@ void getFirstInput(DA *arrayPtr) {
     char c;
 
     while ((c = getchar()) != '\n') {
+/*
         if (i >= sizeof(size_t))
             // input error: labyrinth too big
             exitWithError(0);
+*/
         if (state == IN) {
             if (!isspace(c)) {
                 str[i] = c;
@@ -202,16 +210,20 @@ static DA *getBinaryFromHex() {
 DA *getBinaryFromR() {
     size_t bitLength;
 
-    DA *arr = malloc(sizeof(DA));
-    arr->next = NULL;
+    uint8_t *arr = malloc((getDimProduct(dimNum)/8)*sizeof(uint8_t));
+    if (!arr)
+        exitWithError(0);
 
-    for (int i = 0; i < BLOCK_SIZE; i++)
-        arr->data[i] = 0;
+//    DA *arr = malloc(sizeof(DA));
+//    arr->next = NULL;
 
-    size_t dimProduct = getDimProduct(dimNum - 1);
+//    for (int i = 0; i < BLOCK_SIZE; i++)
+//        arr->data[i] = 0;
+
+    size_t dimProduct = getDimProduct(dimNum);
 
     size_t *params = getInput(4, 5);
-    uint32_t a = params[0], b = params[1],
+    size_t a = params[0], b = params[1],
             m = params[2], r = params[3];
 
     if (debug_input) {
@@ -219,7 +231,7 @@ DA *getBinaryFromR() {
             printf("params[%lu] = %lu\n", i, params[i]);
     }
 
-    uint32_t *sw = malloc(r * sizeof(uint32_t));
+    size_t *sw = malloc((r+1) * sizeof(uint32_t));
     // We will later reuse the sw array for storing w_i numbers.
     // Apart from calculating w_i's, s_i array is useless.
 
@@ -228,44 +240,78 @@ DA *getBinaryFromR() {
 
     if (m == 0) return -1;
 
-    for (size_t i = 0; i < r; i++)
+    for (size_t i = 1; i <= r; i++) {
         sw[i] = (a * sw[i - 1] + b) % m;
+        if (debug_input) printf("s[%lu] = %lu\n", i, sw[i]);
+    }
 
-    for (size_t i = 0; i < r; i++) {
-        sw[i] %= dimProduct;
+    for (size_t i = 0; i <= r; i++) {
+        sw[i] = sw[i] % dimProduct;
         if (debug_input) printf("w[%lu] = %lu\n", i, sw[i]);
     }
 
-    for (size_t i = 0; i < r; i++) {
-        bitLength = setBitsFromR(arr, sw[i]);
+    for (size_t i = 0; i <= r; i++) {
+        bitLength = setBitsFromR(&arr, sw[i]);
 
         if (bitLength > maxInputBitLength)
-            maxInputBitLength = bitLength;
+            // TODO ustalić czemu -1?
+            maxInputBitLength = bitLength - 1;
     }
+
+    free(sw);
 
     return arr;
 }
 
-size_t *dimProductsArray;
+size_t *dimProducts;
 
 size_t getDimProduct(size_t maxNIndex) {
-    if (!dimProductsArray) {
-        dimProductsArray = malloc(sizeof(size_t) * dimNum);
-        dimProductsArray[0] = daGet(getDimensions(), 0);
+    if (!dimProducts) {
+        dimProducts = malloc(sizeof(size_t) * dimNum);
+        dimProducts[0] = daGet(getDimensions(), 0);
+
         for (size_t i = 1; i < dimNum; i++)
-            dimProductsArray[i] = 0;
+            dimProducts[i] = 0;
+    }
+    if (maxNIndex < 1)
+        return 1;
+    else if (maxNIndex > dimNum)
+        return -1;
+    else if (dimProducts[maxNIndex - 1] != 0)
+        return dimProducts[maxNIndex - 1];
+    else {
+        size_t product, a, b;
+
+        a = getDimProduct(maxNIndex - 1);
+        b = daGet(getDimensions(), maxNIndex - 1);
+        product = a * b;
+
+        if (a != product / b) exitWithError(1);
+
+        dimProducts[maxNIndex - 1] = product;
+        return product;
+    }
+}
+
+/*
+size_t getDimProduct(size_t maxNIndex) {
+    // TODO cleanup
+    if (!dimProducts) {
+        dimProducts = malloc(sizeof(size_t) * dimNum);
+        dimProducts[0] = daGet(getDimensions(), 0);
+        for (size_t i = 1; i < dimNum; i++)
+            dimProducts[i] = 0;
     }
     if (maxNIndex < 1) return 1;
     else if (maxNIndex > dimNum) {
         if (debug_input)
             printf("# maxNIndex = %zu > dimNum!\n", maxNIndex);
         return -1;
-    }
-    else if (dimProductsArray[maxNIndex - 1] != 0) {
+    } else if (dimProducts[maxNIndex - 1] != 0) {
         if (debug_input)
-            printf("# dimProductsArray[%d] = %zu (memoized) \n", maxNIndex - 1,
-                   dimProductsArray[maxNIndex - 1]);
-        return dimProductsArray[maxNIndex - 1];
+            printf("# dimProducts[%d] = %zu (memoized) \n", maxNIndex - 1,
+                   dimProducts[maxNIndex - 1]);
+        return dimProducts[maxNIndex - 1];
     } else {
         size_t product, a, b;
 
@@ -276,12 +322,13 @@ size_t getDimProduct(size_t maxNIndex) {
         if (a != product / b) exitWithError(1);
 
         if (debug_input)
-            printf("# dimProductsArray[%d] = %zu\n", maxNIndex - 1, product);
+            printf("# dimProducts[%d] = %zu\n", maxNIndex - 1, product);
 
-        dimProductsArray[maxNIndex - 1] = product;
+        dimProducts[maxNIndex - 1] = product;
         return product;
     }
 }
+*/
 
 size_t getDimNum() { return dimNum; }
 

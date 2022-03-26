@@ -98,9 +98,9 @@ static void expand(size_t rankedPos, DA *binaryRep, int mod) {
     size_t *debugPos;
 
     if (debug_labyrinth) {
-        printf("# WILL EXPAND for %zu:\n# ", rankedPos);
+        printf("# WILL EXPAND for %zu:\n# [", rankedPos);
         for (int z = 0; z < dimNum; z++)
-            printf("[%d, ", pos[z]);
+            printf("%d, ", pos[z]);
         printf("]\n");
     }
 
@@ -109,9 +109,10 @@ static void expand(size_t rankedPos, DA *binaryRep, int mod) {
             tryToPush(moveRank(rankedPos, i, 1), binaryRep, mod);
             if (debug_labyrinth) {
                 debugPos = unrankCube(moveRank(rankedPos, i, 1));
-                printf("# ^EXPANDED FORWARD for %zu, i = %zu:\n# ", rankedPos, i);
+                printf("# ^EXPANDED FORWARD for %zu, i = %zu:\n# [", rankedPos,
+                       i);
                 for (int z = 0; z < dimNum; z++)
-                    printf("[%d, ", debugPos[z]);
+                    printf("%d, ", debugPos[z]);
                 printf("] ---- as %d\n", moveRank(rankedPos, i, 1));
             }
         }
@@ -119,9 +120,9 @@ static void expand(size_t rankedPos, DA *binaryRep, int mod) {
             tryToPush(moveRank(rankedPos, i, -1), binaryRep, mod);
             if (debug_labyrinth) {
                 debugPos = unrankCube(moveRank(rankedPos, i, -1));
-                printf("# ^EXPANDED BACK for %zu, i = %zu:\n# ", rankedPos, i);
+                printf("# ^EXPANDED BACK for %zu, i = %zu:\n# [", rankedPos, i);
                 for (int z = 0; z < dimNum; z++)
-                    printf("[%d, ", debugPos[z]);
+                    printf("%d, ", debugPos[z]);
                 printf("] ---- as %d\n", moveRank(rankedPos, i, -1));
             }
         }
@@ -150,7 +151,8 @@ findPathLength(size_t rankedStartPos, size_t *endPos, uint8_t *visited) {
                 if (1 <= pos[i] + j &&
                     pos[i] + j <= daGet(getDimensions(), i)) {
                     pos[i] += j;
-                    if (getMod(getTwoBit(visited, rankCube(pos))) == (mod - 1) % 3) {
+                    if (getMod(getTwoBit(visited, rankCube(pos))) ==
+                        (mod - 1) % 3) {
                         if (debug_labyrinth)
                             printf("found, rpos = %d, mod = %d, f_mod = %d\n",
                                    rankCube(pos), mod, (mod - 1) % 3);
@@ -171,9 +173,28 @@ findPathLength(size_t rankedStartPos, size_t *endPos, uint8_t *visited) {
     return length;
 }
 
+static int isNoWayOneDim(size_t rankedStartPos, size_t rankedEndPos, DA *binaryRep) {
+    if (getDimNum() != 1) return 0;
+    size_t min = rankedStartPos, max = rankedEndPos;
+    if (rankedStartPos > rankedEndPos) {
+        min = rankedEndPos;
+        max = rankedStartPos;
+    }
+    for (size_t i = min; i < max; i++)
+        if (getBitClassic(binaryRep, i) == 1)
+            return 1;
+
+    return 0;
+}
+
 int64_t findPath(size_t *startPos, size_t *endPos, DA *binaryRep) {
-    visited = (uint8_t *) malloc(
-            sizeof(uint8_t) * getMaxRank());  // ! rozmiar narazie roboczy
+    size_t rankedStartPos = rankCube(startPos);
+    size_t rankedEndPos = rankCube(endPos);
+
+    if (isNoWayOneDim(rankedStartPos, rankedEndPos, binaryRep))
+        return -1;
+
+    visited = (uint8_t *) malloc(sizeof(uint8_t) * getMaxRank());
 
     if (!visited) {
         // malloc failed
@@ -192,7 +213,7 @@ int64_t findPath(size_t *startPos, size_t *endPos, DA *binaryRep) {
 
     int mod = 0;
 
-    push(posQueue, addMod(rankCube(startPos), mod));
+    push(posQueue, addMod(rankedStartPos, mod));
 /*
     size_t rankedPos = rankCube(startPos);
     setTwoBit(&visited, rankedPos, mod);
@@ -201,18 +222,19 @@ int64_t findPath(size_t *startPos, size_t *endPos, DA *binaryRep) {
 
     int foundPath = 0;
     size_t combined, rankedPos;
-    size_t rankedEndPos = rankCube(endPos);
 
-    if (debug_labyrinth) printf("# rankedStartPos = %d\n", rankCube(startPos));
+    if (debug_labyrinth) printf("# rankedStartPos = %d\n", rankedStartPos);
     if (debug_labyrinth) printf("# rankedEndPos = %d\n", rankedEndPos);
 
+    // TODO divide into another function
     while (!foundPath && !isEmpty(posQueue)) {
         combined = pop(posQueue);
         mod = (getMod(combined) + 1) % 3;
         rankedPos = getPos(combined);
 
         if (debug_labyrinth)
-            printf("# SPLIT: combined = %d, rankedPos = %d, mod = %d\n", combined,
+            printf("# SPLIT: combined = %d, rankedPos = %d, mod = %d\n",
+                   combined,
                    rankedPos, getMod(combined));
 
         if (rankedPos == rankedEndPos) {
@@ -226,5 +248,5 @@ int64_t findPath(size_t *startPos, size_t *endPos, DA *binaryRep) {
     if (!foundPath)
         return -1;
     else
-        return findPathLength(rankCube(startPos), endPos, visited);
+        return findPathLength(rankedStartPos, endPos, visited);
 }
