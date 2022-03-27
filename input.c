@@ -13,9 +13,9 @@ static int debug_input = 0;
 static size_t dimNum = -1;
 static size_t maxInputBitLength = 0;
 
-static DA *getBinaryFromHex();
+static uint8_t *getBinaryFromHex();
 
-static DA *getBinaryFromR();
+static uint8_t *getBinaryFromR();
 
 static size_t getNum(char *str, size_t i, int inputLine) {
     size_t j = 0;
@@ -44,14 +44,6 @@ size_t *getInput(int inputLine, size_t argumentsCount) {
     char c;
 
     while ((c = getchar()) != '\n') {
-/*
-        if (i >=
-            sizeof(size_t)) { // TODO ERROR 0 niemal na pewno nie powinien być tak wykrywany
-            // input error: labyrinth too big
-            free(inputArr);
-            exitWithError(0);
-        }
-*/
         if (state == IN) {
             if (!isspace(c)) {
                 str[i] = c;
@@ -100,11 +92,6 @@ void getFirstInput(DA *arrayPtr) {
     char c;
 
     while ((c = getchar()) != '\n') {
-/*
-        if (i >= sizeof(size_t))
-            // input error: labyrinth too big
-            exitWithError(0);
-*/
         if (state == IN) {
             if (!isspace(c)) {
                 str[i] = c;
@@ -159,13 +146,11 @@ DA *getBinaryWallsRep() {
         return getBinaryFromR();
 }
 
-// TODO better names than "arr"
-
 /***
  * getBinaryFromHex converts Hex number to Binary
  * @return array of bits
  */
-static DA *getBinaryFromHex() {
+static uint8_t *getBinaryFromHex() {
     // To store the binary expansion we will use an array of chars.
     // 1 char can store 8 bits. Since 1 hex digit represents 4 bits,
     // we can store 2 hex values in 1 char thus optimizing memory usage.
@@ -173,15 +158,12 @@ static DA *getBinaryFromHex() {
     // of storage.
 
     size_t bitLength;
-    DA *arr = malloc(sizeof(DA));
-
-    for (int i = 0; i < BLOCK_SIZE; i++)
-        arr->data[i] = 0;
-
-    arr->next = NULL;
+    uint8_t *bitArray = malloc((getMaxRank() / 8) * sizeof(uint8_t));
+    if (!bitArray)
+        exitWithError(0);
 
     char c;
-    size_t i = 0; // arr index
+    size_t i = 0; // bitArray index
     int hexVal;
     int leadingZeros = 1;
 
@@ -196,7 +178,7 @@ static DA *getBinaryFromHex() {
             else if ('a' <= c && c <= 'f')
                 hexVal = 10 + c - 'a';
 
-            bitLength = setBitsFromHex(arr, i, hexVal);
+            bitLength = setBitsFromHex(&bitArray, i, hexVal);
 
             if (bitLength > maxInputBitLength)
                 maxInputBitLength = bitLength;
@@ -204,21 +186,15 @@ static DA *getBinaryFromHex() {
             i++;
         }
 
-    return arr;
+    return bitArray;
 }
 
-DA *getBinaryFromR() {
+uint8_t *getBinaryFromR() {
     size_t bitLength;
 
-    uint8_t *arr = malloc((getDimProduct(dimNum)/8)*sizeof(uint8_t));
-    if (!arr)
+    uint8_t *bitArray = malloc((getMaxRank() / 8) * sizeof(uint8_t));
+    if (!bitArray)
         exitWithError(0);
-
-//    DA *arr = malloc(sizeof(DA));
-//    arr->next = NULL;
-
-//    for (int i = 0; i < BLOCK_SIZE; i++)
-//        arr->data[i] = 0;
 
     size_t dimProduct = getDimProduct(dimNum);
 
@@ -231,7 +207,7 @@ DA *getBinaryFromR() {
             printf("params[%lu] = %lu\n", i, params[i]);
     }
 
-    size_t *sw = malloc((r+1) * sizeof(uint32_t));
+    size_t *sw = malloc((r+1) * sizeof(size_t));
     // We will later reuse the sw array for storing w_i numbers.
     // Apart from calculating w_i's, s_i array is useless.
 
@@ -251,7 +227,7 @@ DA *getBinaryFromR() {
     }
 
     for (size_t i = 0; i <= r; i++) {
-        bitLength = setBitsFromR(&arr, sw[i]);
+        bitLength = setBitsFromR(&bitArray, sw[i]);
 
         if (bitLength > maxInputBitLength)
             // TODO ustalić czemu -1?
@@ -260,7 +236,7 @@ DA *getBinaryFromR() {
 
     free(sw);
 
-    return arr;
+    return bitArray;
 }
 
 size_t *dimProducts;
@@ -292,43 +268,6 @@ size_t getDimProduct(size_t maxNIndex) {
         return product;
     }
 }
-
-/*
-size_t getDimProduct(size_t maxNIndex) {
-    // TODO cleanup
-    if (!dimProducts) {
-        dimProducts = malloc(sizeof(size_t) * dimNum);
-        dimProducts[0] = daGet(getDimensions(), 0);
-        for (size_t i = 1; i < dimNum; i++)
-            dimProducts[i] = 0;
-    }
-    if (maxNIndex < 1) return 1;
-    else if (maxNIndex > dimNum) {
-        if (debug_input)
-            printf("# maxNIndex = %zu > dimNum!\n", maxNIndex);
-        return -1;
-    } else if (dimProducts[maxNIndex - 1] != 0) {
-        if (debug_input)
-            printf("# dimProducts[%d] = %zu (memoized) \n", maxNIndex - 1,
-                   dimProducts[maxNIndex - 1]);
-        return dimProducts[maxNIndex - 1];
-    } else {
-        size_t product, a, b;
-
-        a = getDimProduct(maxNIndex - 1);
-        b = daGet(getDimensions(), maxNIndex - 1);
-        product = a * b;
-
-        if (a != product / b) exitWithError(1);
-
-        if (debug_input)
-            printf("# dimProducts[%d] = %zu\n", maxNIndex - 1, product);
-
-        dimProducts[maxNIndex - 1] = product;
-        return product;
-    }
-}
-*/
 
 size_t getDimNum() { return dimNum; }
 

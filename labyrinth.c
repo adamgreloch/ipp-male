@@ -79,7 +79,7 @@ static int getMod(size_t posMod) {
     return (int *) ((posMod) & 3);
 }
 
-static void tryToPush(size_t rankedPos, DA *binaryRep, int mod) {
+static void tryToPush(size_t rankedPos, uint8_t *binaryRep, int mod) {
     if (debug_labyrinth) printf("# try %zu, mod = %zu\n", rankedPos, mod);
 
     if (!isCubeFull(rankedPos, binaryRep)) {
@@ -92,7 +92,7 @@ static void tryToPush(size_t rankedPos, DA *binaryRep, int mod) {
     }
 }
 
-static void expand(size_t rankedPos, DA *binaryRep, int mod) {
+static void expand(size_t rankedPos, uint8_t *binaryRep, int mod) {
     size_t dimNum = getDimNum();
     size_t *pos = unrankCube(rankedPos);
     size_t *debugPos;
@@ -173,7 +173,7 @@ findPathLength(size_t rankedStartPos, size_t *endPos, uint8_t *visited) {
     return length;
 }
 
-static int isNoWayOneDim(size_t rankedStartPos, size_t rankedEndPos, DA *binaryRep) {
+static int isNoWayOneDim(size_t rankedStartPos, size_t rankedEndPos, uint8_t *binaryRep) {
     if (getDimNum() != 1) return 0;
     size_t min = rankedStartPos, max = rankedEndPos;
     if (rankedStartPos > rankedEndPos) {
@@ -181,13 +181,13 @@ static int isNoWayOneDim(size_t rankedStartPos, size_t rankedEndPos, DA *binaryR
         max = rankedStartPos;
     }
     for (size_t i = min; i < max; i++)
-        if (getBitClassic(binaryRep, i) == 1)
+        if (getBit(binaryRep, i) == 1)
             return 1;
 
     return 0;
 }
 
-int64_t findPath(size_t *startPos, size_t *endPos, DA *binaryRep) {
+int64_t findPath(size_t *startPos, size_t *endPos, uint8_t *binaryRep) {
     size_t rankedStartPos = rankCube(startPos);
     size_t rankedEndPos = rankCube(endPos);
 

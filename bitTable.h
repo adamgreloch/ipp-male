@@ -5,23 +5,17 @@
 #include <stdio.h>
 #include <stdint.h>
 
-// TODO remake bitTable for DA
+void setBit(uint8_t **arrayPtr, size_t bitIndex, int bitValue);
 
-void setBit(DA *arrayPtr, size_t bitIndex, int bitValue);
-
-int getBit(DA *arrayPtr, size_t bitIndex);
+int getBit(uint8_t *arrayPtr, size_t bitIndex);
 
 void setTwoBit(uint8_t **arrayPtr, size_t twoBitIndex, int twoBitValue);
 
 int getTwoBit(uint8_t *arrayPtr, size_t twoBitIndex);
 
-size_t setBitsFromHex(DA *arrayPtr, size_t valueIndex, int hexValue);
+size_t setBitsFromHex(uint8_t **arrayPtr, size_t valueIndex, int hexValue);
 
 size_t setBitsFromR(uint8_t **arrayPtr, size_t remainder);
-
-int getBitClassic(uint8_t* arrayPtr, size_t bitIndex);
-
-void setBitClassic(uint8_t** arrayPtr, size_t bitIndex, int bitValue);
 
 size_t getMaxBitLength();
 

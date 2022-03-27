@@ -13,7 +13,7 @@ static int debug_cubes = 0;
  * @param binaryRep should point to the binary representation of the 4th input line.
  * @returns 1 when cube is full, 0 when empty.
  */
-int isCubeFull(size_t rankedCube, DA *binaryRep) {
+int isCubeFull(size_t rankedCube, uint8_t *binaryRep) {
     if (rankedCube >= getMaxInputBitLength())
         // Index points to a cube guaranteed to be empty.
         return 0;

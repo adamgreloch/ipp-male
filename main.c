@@ -7,7 +7,7 @@
 #include <stdlib.h>
 
 static DA *dimensions;
-static DA *binaryRep;
+static uint8_t *binaryRep;
 
 static int debug_main = 0;
 

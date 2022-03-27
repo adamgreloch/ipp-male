@@ -5,24 +5,7 @@
 #define R_MODULO 4294967296
 static int debug_bitTable = 0;
 
-int getBit(DA *arrayPtr, size_t bitIndex) {
-    size_t cellIndex = bitIndex / 8;
-    int k = (int) (7 - bitIndex % 8);
-    int n = daGet8Bit(arrayPtr, cellIndex);
-
-    if (debug_bitTable) printf("# get1B: %d\n", (n & (1 << k)) >> k);
-    return (n & (1 << k)) >> k;
-}
-
-int getBitClassic(uint8_t* arrayPtr, size_t bitIndex) {
-    size_t cellIndex = bitIndex / 8;
-    int k = 7 - bitIndex % 8;
-    int n = arrayPtr[cellIndex];
-
-    return (n & ( 1 << k )) >> k;
-}
-
-void setBitClassic(uint8_t** arrayPtr, size_t bitIndex, int bitValue) {
+void setBit(uint8_t** arrayPtr, size_t bitIndex, int bitValue) {
     size_t cellIndex = bitIndex / 8;
     int k = 7 - bitIndex % 8;
 
@@ -32,18 +15,12 @@ void setBitClassic(uint8_t** arrayPtr, size_t bitIndex, int bitValue) {
         (*arrayPtr)[cellIndex] &= ~(1 << k);
 }
 
-void setBit(DA *arrayPtr, size_t bitIndex, int bitValue) {
+int getBit(uint8_t* arrayPtr, size_t bitIndex) {
     size_t cellIndex = bitIndex / 8;
     int k = 7 - bitIndex % 8;
-    uint8_t cell;
+    int n = arrayPtr[cellIndex];
 
-    if (bitValue) {
-        cell = daGet8Bit(arrayPtr, cellIndex);
-        daPut8Bit(arrayPtr, cellIndex, cell | (1 << k));
-    } else {
-        cell = daGet8Bit(arrayPtr, cellIndex);
-        daPut8Bit(arrayPtr, cellIndex, cell & ~(1 << k));
-    }
+    return (n & ( 1 << k )) >> k;
 }
 
 void setTwoBit(uint8_t **arrayPtr, size_t twoBitIndex, int twoBitValue) {
@@ -72,16 +49,14 @@ int getTwoBit(uint8_t *arrayPtr, size_t twoBitIndex) {
 }
 
 /// @returns current bit length
-size_t setBitsFromHex(DA *arrayPtr, size_t valueIndex, int hexValue) {
+size_t setBitsFromHex(uint8_t **arrayPtr, size_t valueIndex, int hexValue) {
     size_t cellIndex = valueIndex / 2;
     uint8_t cell;
 
     if (valueIndex % 2 == 0)
-        daPut8Bit(arrayPtr, cellIndex, hexValue << 4);
-    else {
-        cell = daGet8Bit(arrayPtr, cellIndex);
-        daPut8Bit(arrayPtr, cellIndex, cell | hexValue);
-    }
+        (*arrayPtr)[cellIndex] = hexValue << 4;
+    else
+        (*arrayPtr)[cellIndex] |= hexValue;
 
     //return 8 * cellIndex + 4;
     return 4 * valueIndex + 4;
@@ -90,7 +65,7 @@ size_t setBitsFromHex(DA *arrayPtr, size_t valueIndex, int hexValue) {
 size_t setBitsFromR(uint8_t **arrayPtr, size_t index) {
     size_t bitLength = 0;
     while (index < getMaxRank()) {
-        setBitClassic(arrayPtr, index, 1);
+        setBit(arrayPtr, index, 1);
         bitLength = index;
         if (debug_bitTable) printf("%zu\n", index);
         index += R_MODULO;
