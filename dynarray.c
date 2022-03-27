@@ -1,7 +1,6 @@
 #include "dynarray.h"
 
-// TODO ogarnąć
-// TODO dokumentacja
+// TODO przepisać na zwykłą dynamiczną tablicę rodem z WPI
 
 static DA *daFind(DA *arrayPtr, size_t index, size_t *currentIndexPtr) {
     DA *currentPtr;

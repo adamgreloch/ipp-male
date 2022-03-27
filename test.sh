@@ -17,9 +17,10 @@ do
     if diff "${f%in}errp" "${f%in}err" > /dev/null 1>&1 &&
     diff "${f%in}outp" "${f%in}out" > /dev/null 1>&1
     then
-        echo -e "${GREEN}passed${RESET}";
+        echo -e "${GREEN}passed${RESET}"
     else
         echo -e "${RED}failed${RESET}"
+        cat "$f";
         diff -y -W 30 "${f%in}outp" "${f%in}out"
         diff -y -W 30 "${f%in}errp" "${f%in}err"
     fi

@@ -3,11 +3,12 @@
 #include "cubes.h"
 
 #define R_MODULO 4294967296
-static int debug_bitTable = 0;
+//#define DEBUG_BITTABLE
+//#define DEBUG_R
 
 void setBit(uint8_t** arrayPtr, size_t bitIndex, int bitValue) {
     size_t cellIndex = bitIndex / 8;
-    int k = 7 - bitIndex % 8;
+    int k = (int) (7 - bitIndex % 8);
 
     if (bitValue)
         (*arrayPtr)[cellIndex] |= (1 << k);
@@ -30,9 +31,10 @@ void setTwoBit(uint8_t **arrayPtr, size_t twoBitIndex, int twoBitValue) {
     (*arrayPtr)[cellIndex] &= ~(0b11 << (2 * inCellIndex));
     (*arrayPtr)[cellIndex] |= (twoBitValue << (2 * inCellIndex));
 
-    if (debug_bitTable)
-        printf("# set2B: ICI = %d, CI = %d, TBI = %d, TBV = %d\n", inCellIndex,
-               cellIndex, twoBitIndex, twoBitValue);
+    #ifdef DEBUG_BITTABLE
+    printf("# set2B: ICI = %d, CI = %d, TBI = %d, TBV = %d\n", inCellIndex,
+           cellIndex, twoBitIndex, twoBitValue);
+    #endif
 }
 
 int getTwoBit(uint8_t *arrayPtr, size_t twoBitIndex) {
@@ -42,9 +44,11 @@ int getTwoBit(uint8_t *arrayPtr, size_t twoBitIndex) {
     int n = arrayPtr[cellIndex];
 
     int twoBitValue = (n & (0b11 << (2 * k))) >> (2 * k);
-    if (debug_bitTable)
-        printf("# get2B: ICI = %d, CI = %d, TBI = %d, TBV = %d, ALL = %d\n",
-               inCellIndex, cellIndex, twoBitIndex, twoBitValue, n);
+
+    #ifdef DEBUG_BITTABLE
+    printf("# get2B: ICI = %d, CI = %d, TBI = %d, TBV = %d, ALL = %d\n",
+           inCellIndex, cellIndex, twoBitIndex, twoBitValue, n);
+    #endif
     return twoBitValue;
 }
 
@@ -62,17 +66,12 @@ size_t setBitsFromHex(uint8_t **arrayPtr, size_t valueIndex, int hexValue) {
     return 4 * valueIndex + 4;
 }
 
-size_t setBitsFromR(uint8_t **arrayPtr, size_t index) {
-    size_t bitLength = 0;
+void setBitsFromR(uint8_t **arrayPtr, size_t index) {
     while (index < getMaxRank()) {
         setBit(arrayPtr, index, 1);
-        bitLength = index;
-        if (debug_bitTable) printf("%zu\n", index);
+        #ifdef DEBUG_R
+        printf("set %zu\n", index);
+        #endif
         index += R_MODULO;
     }
-
-    while (bitLength % 8 != 0)
-        bitLength++;
-
-    return bitLength;
 }

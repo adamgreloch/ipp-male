@@ -15,6 +15,7 @@ size_t getDimProduct(size_t maxNIndex);
 #define IN 1
 #define OUT 0
 
-DA *getBinaryWallsRep();
+uint8_t *getBinaryWallsRep();
+int isHex();
 
 #endif //MALE_INPUT_H

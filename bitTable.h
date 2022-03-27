@@ -15,7 +15,7 @@ int getTwoBit(uint8_t *arrayPtr, size_t twoBitIndex);
 
 size_t setBitsFromHex(uint8_t **arrayPtr, size_t valueIndex, int hexValue);
 
-size_t setBitsFromR(uint8_t **arrayPtr, size_t remainder);
+void setBitsFromR(uint8_t **arrayPtr, size_t remainder);
 
 size_t getMaxBitLength();
 

@@ -3,7 +3,7 @@
 #include "main.h"
 #include <stdlib.h>
 
-static int debug_cubes = 0;
+//#define DEBUG_CUBES
 
 /**
  * isCubeFull determines whether a given cube is full or empty.
@@ -14,13 +14,16 @@ static int debug_cubes = 0;
  * @returns 1 when cube is full, 0 when empty.
  */
 int isCubeFull(size_t rankedCube, uint8_t *binaryRep) {
+    if (!isHex())
+        return getBit(binaryRep, rankedCube);
     if (rankedCube >= getMaxInputBitLength())
         // Index points to a cube guaranteed to be empty.
         return 0;
     else {
-        if (debug_cubes)
-            printf("isCubeFull index: %zu\n",
-                   getMaxInputBitLength() - 1 - rankedCube);
+        #ifdef DEBUG_CUBES
+        printf("isCubeFull index: %zu\n",
+               getMaxInputBitLength() - 1 - rankedCube);
+        #endif
         return getBit(binaryRep, getMaxInputBitLength() - 1 - rankedCube);
     }
 }
@@ -46,7 +49,9 @@ size_t rankCube(size_t *cube) {
         product = 1;
         for (size_t i = 0; i < k; i++) {
             dim = daGet(dimensions, i);
-            if (debug_cubes) printf("# cube = %zu, dim = %zu\n", cube[i], dim);
+            #ifdef DEBUG_CUBES
+            printf("# cube = %zu, dim = %zu\n", cube[i], dim);
+            #endif
             if (cube[i] > dim)
                 // error: cube pos outside dimension
                 return -1;
@@ -55,7 +60,9 @@ size_t rankCube(size_t *cube) {
         }
         sum += (cube[k] - 1) * product;
     }
-    if (debug_cubes) printf("rankCube: %zu\n", sum);
+    #ifdef DEBUG_CUBES
+    printf("rankCube: %zu\n", sum);
+    #endif
     return sum;
 }
 
