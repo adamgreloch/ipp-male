@@ -98,12 +98,12 @@ static void tryToPush(size_t rankedPos, uint8_t *binaryRep, int mod) {
     }
 }
 
-static void expand(size_t rankedPos, uint8_t *binaryRep, int mod) {
+static void expand(size_t rankedPos, uint8_t *binaryRep, DA *dimensions, int mod) {
     size_t dimNum = getDimNum();
     size_t *pos = unrankCube(rankedPos);
-    size_t *debugPos;
 
     #ifdef DEBUG_LABYRINTH
+    size_t *debugPos;
     printf("# WILL EXPAND for %zu:\n# [", rankedPos);
     for (int z = 0; z < dimNum; z++)
         printf("%d, ", pos[z]);
@@ -111,7 +111,7 @@ static void expand(size_t rankedPos, uint8_t *binaryRep, int mod) {
     #endif
 
     for (size_t i = 0; i < dimNum; i++) {
-        if (pos[i] < daGet(getDimensions(), i)) {
+        if (pos[i] < daGet(dimensions, i)) {
             tryToPush(moveRank(rankedPos, i, 1), binaryRep, mod);
             #ifdef DEBUG_LABYRINTH
             debugPos = unrankCube(moveRank(rankedPos, i, 1));
@@ -199,11 +199,13 @@ static int isNoWayOneDim(size_t rankedStartPos, size_t rankedEndPos, uint8_t *bi
 int64_t findPath(size_t *startPos, size_t *endPos, uint8_t *binaryRep) {
     size_t rankedStartPos = rankCube(startPos);
     size_t rankedEndPos = rankCube(endPos);
+    DA *dimensions = getDimensions();
 
     if (isNoWayOneDim(rankedStartPos, rankedEndPos, binaryRep))
         return -1;
 
-    visited = malloc(sizeof(uint8_t) * getMaxRank());
+    // TODO switch to calloc and use bits 1,2,3 as modulo
+    visited = malloc(getMaxRank()*sizeof(uint8_t));
 
     if (!visited) {
         // malloc failed
@@ -216,6 +218,8 @@ int64_t findPath(size_t *startPos, size_t *endPos, uint8_t *binaryRep) {
     for (size_t i = 0; i < getMaxRank(); i++) {
         visited[i] = 0xFF;
     }
+
+    // TODO use two queues? seperate for pos and mod
 
     posQueue = malloc(sizeof(queue));
     init(posQueue);
@@ -248,7 +252,7 @@ int64_t findPath(size_t *startPos, size_t *endPos, uint8_t *binaryRep) {
             foundPath = 1;
             empty(posQueue);
         } else
-            expand(rankedPos, binaryRep, mod);
+            expand(rankedPos, binaryRep, dimensions, mod);
         setTwoBit(&visited, rankedPos, getMod(combined));
     }
 

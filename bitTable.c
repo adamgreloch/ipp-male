@@ -55,19 +55,17 @@ int getTwoBit(uint8_t *arrayPtr, size_t twoBitIndex) {
 /// @returns current bit length
 size_t setBitsFromHex(uint8_t **arrayPtr, size_t valueIndex, int hexValue) {
     size_t cellIndex = valueIndex / 2;
-    uint8_t cell;
 
     if (valueIndex % 2 == 0)
         (*arrayPtr)[cellIndex] = hexValue << 4;
     else
         (*arrayPtr)[cellIndex] |= hexValue;
 
-    //return 8 * cellIndex + 4;
     return 4 * valueIndex + 4;
 }
 
 void setBitsFromR(uint8_t **arrayPtr, size_t index) {
-    while (index < getMaxRank()) {
+    while (index <= getMaxRank()) {
         setBit(arrayPtr, index, 1);
         #ifdef DEBUG_R
         printf("set %zu\n", index);
