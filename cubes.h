@@ -4,8 +4,6 @@
 #include "input.h"
 #include "stdint.h"
 
-int isCubeFull(size_t rankedCube, uint8_t *binaryRep);
-
 size_t rankCube(size_t *cube);
 
 size_t *unrankCube(size_t cubeRank);

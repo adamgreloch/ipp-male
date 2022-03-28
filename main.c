@@ -7,7 +7,6 @@
 #include <stdlib.h>
 
 static DA *dimensions;
-static uint8_t *binaryRep;
 
 //#define DEBUG_MAIN
 
@@ -15,14 +14,15 @@ int main() {
     dimensions = malloc(sizeof(DA));
     dimensions->next = NULL;
 
-    getFirstInput(dimensions);
+    // TODO ujednolicić wszystkie dane w jedną strukturę aby
+    // 1) skrócić liczbę argumentów w funkcjach
+    // 2) uprościć zwalnianie pamięci przy błędach
 
-    // TODO ujednolicić wszystkie dane w jedną strukturę
-    // ABY SKROCIC LICZBE ARGUMENTOW
+    getFirstInput(dimensions);
     size_t *startPos = getInput(2, getDimNum());
     size_t *endPos = getInput(3, getDimNum());
 
-    #ifdef DEBUG_MAIN
+#ifdef DEBUG_MAIN
     for (int i = 0; i < getDimNum(); i++) {
         printf("%zu ", daGet(dimensions, i));
     }
@@ -36,28 +36,23 @@ int main() {
     }
     putchar('\n');
     printf("%zu\n", getDimProduct(getDimNum()));
-    #endif
+#endif
 
-    binaryRep = getBinaryWallsRep();
+    uint8_t binaryRep = getBinaryWallsRep();
 
-/*
     if (getchar() != EOF) {
         // input error: too many input lines
+        free(startPos);
+        free(endPos);
         free(dimensions);
         free(binaryRep);
         exitWithError(5);
     }
-*/
 
-    #ifdef DEBUG_MAIN
-    for (int i = 0; i <= getMaxInputBitLength(); i++) {
-        printf("-%d", getBit(binaryRep, i));
-    }
-    printf(" -- %d\n", getMaxInputBitLength());
-    #endif
-
-    if (isCubeFull(rankCube(startPos), binaryRep) != 0) {
+    if (getBit(binaryRep, rankCube(startPos)) != 0) {
         // input error: startPos filled or cube pos outside dimension
+        free(startPos);
+        free(endPos);
         free(dimensions);
         free(binaryRep);
         exitWithError(2);
@@ -80,8 +75,4 @@ int main() {
 
 DA *getDimensions() {
     return dimensions;
-}
-
-uint8_t getBinaryRep() {
-    return binaryRep;
 }

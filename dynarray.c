@@ -18,10 +18,6 @@ static DA *daFind(DA *arrayPtr, size_t index, size_t *currentIndexPtr) {
                 exit(1);
             }
 
-            // TODO check if necessary
-//            for (int i = 0; i < BLOCK_SIZE; i++)
-//                currentPtr->next->data[i] = 0;
-
             memset(currentPtr->next, '\0', sizeof(DA));
         }
         currentPtr = currentPtr->next;
@@ -39,23 +35,6 @@ void daPut(DA *arrayPtr, size_t index, size_t data) {
 }
 
 size_t daGet(DA *arrayPtr, size_t index) {
-    DA *currentPtr;
-
-    size_t currentIndex;
-
-    currentPtr = daFind(arrayPtr, index, &currentIndex);
-    return currentPtr->data[currentIndex];
-}
-
-void daPut8Bit(DA *arrayPtr, size_t index, uint8_t data) {
-    DA *currentPtr;
-    size_t currentIndex;
-
-    currentPtr = daFind(arrayPtr, index, &currentIndex);
-    currentPtr->data[currentIndex] = data;
-}
-
-uint8_t daGet8Bit(DA *arrayPtr, size_t index) {
     DA *currentPtr;
 
     size_t currentIndex;

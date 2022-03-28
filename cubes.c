@@ -6,29 +6,6 @@
 //#define DEBUG_CUBES
 
 /**
- * isCubeFull determines whether a given cube is full or empty.
- * Assumes that rankedCube points to a proper indimensional cube.
- * @param cube is an array of cube coordinates (z_1, z_2, ..., z_k).
- * @param dimensionsPtr should point to the dimensions array declared in main.
- * @param binaryRep should point to the binary representation of the 4th input line.
- * @returns 1 when cube is full, 0 when empty.
- */
-int isCubeFull(size_t rankedCube, uint8_t *binaryRep) {
-    if (!isHex())
-        return getBit(binaryRep, rankedCube);
-    if (rankedCube >= getMaxInputBitLength())
-        // Index points to a cube guaranteed to be empty.
-        return 0;
-    else {
-        #ifdef DEBUG_CUBES
-        printf("isCubeFull index: %zu\n",
-               getMaxInputBitLength() - 1 - rankedCube);
-        #endif
-        return getBit(binaryRep, getMaxInputBitLength() - 1 - rankedCube);
-    }
-}
-
-/**
  * rankCube translates (z_1, z_2, ..., z_k) cube coordinates into a bitNumber.
  *
  * The result is calculated using the following equation
@@ -49,9 +26,9 @@ size_t rankCube(size_t *cube) {
         product = 1;
         for (size_t i = 0; i < k; i++) {
             dim = daGet(dimensions, i);
-            #ifdef DEBUG_CUBES
+#ifdef DEBUG_CUBES
             printf("# cube = %zu, dim = %zu\n", cube[i], dim);
-            #endif
+#endif
             if (cube[i] > dim)
                 // error: cube pos outside dimension
                 return -1;
@@ -60,9 +37,9 @@ size_t rankCube(size_t *cube) {
         }
         sum += (cube[k] - 1) * product;
     }
-    #ifdef DEBUG_CUBES
+#ifdef DEBUG_CUBES
     printf("rankCube: %zu\n", sum);
-    #endif
+#endif
     return sum;
 }
 

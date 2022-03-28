@@ -9,15 +9,16 @@
 
 //#define DEBUG_INPUT
 
+#define IN 1
+#define OUT 0
+
 static size_t dimNum = -1;
-static size_t maxInputBitLength = 0;
-static int isHexVar = 0;
 
 static uint8_t *getBinaryFromHex();
 
 static uint8_t *getBinaryFromR();
 
-static size_t getNum(char *str, size_t i, int inputLine) {
+static size_t getNum(int *str, size_t i, int inputLine) {
     size_t j = 0;
     size_t num = 0;
     while (j < i) {
@@ -40,12 +41,12 @@ size_t *getInput(int inputLine, size_t argumentsCount) {
         // error: malloc failed
         exitWithError(0);
 
-    char *str = malloc(sizeof(char) * UINT16_MAX);
+    int *str = malloc(sizeof(char) * UINT16_MAX);
     int state = OUT;
     size_t i = 0, k = 0;
-    char c;
+    int c;
 
-    while ((c = (char) getchar()) != '\n') {
+    while ((c = getchar()) != '\n') {
         if (state == IN) {
             if (!isspace(c)) {
                 str[i] = c;
@@ -53,9 +54,9 @@ size_t *getInput(int inputLine, size_t argumentsCount) {
             } else {
                 state = OUT;
                 inputArr[k] = getNum(str, i, inputLine);
-                #ifdef DEBUG_INPUT
+#ifdef DEBUG_INPUT
                 printf("%s -> %zu (k=%zu)\n", str, inputArr[k], k);
-                #endif
+#endif
                 k++;
                 i = 0;
             }
@@ -68,9 +69,9 @@ size_t *getInput(int inputLine, size_t argumentsCount) {
 
     if (state == IN) {
         inputArr[k] = getNum(str, i, inputLine);
-        #ifdef DEBUG_INPUT
-            printf("%s -> %zu (k=%zu)\n", str, inputArr[k], k);
-        #endif
+#ifdef DEBUG_INPUT
+        printf("%s -> %zu (k=%zu)\n", str, inputArr[k], k);
+#endif
         k++;
     }
 
@@ -82,21 +83,21 @@ size_t *getInput(int inputLine, size_t argumentsCount) {
 
     free(str);
 
-    #ifdef DEBUG_INPUT
+#ifdef DEBUG_INPUT
     for (int j = 0; j < dimNum; j++)
         printf("inputArr[%zu] = %zu\n", j, inputArr[j]);
-    #endif
+#endif
 
     return inputArr;
 }
 
 void getFirstInput(DA *arrayPtr) {
-    char *str = malloc(sizeof(char) * UINT16_MAX);
+    int *str = malloc(sizeof(char) * UINT16_MAX);
     int state = OUT;
     size_t i = 0, k = 0;
-    char c;
+    int c;
 
-    while ((c = (char) getchar()) != '\n') {
+    while ((c = getchar()) != '\n') {
         if (state == IN) {
             if (!isspace(c)) {
                 str[i] = c;
@@ -137,10 +138,10 @@ void getFirstInput(DA *arrayPtr) {
  *  @return pointer to an array of two hex values per cell
  */
 uint8_t *getBinaryWallsRep() {
-    char c;
+    int c;
     int inputType = -2; // 0 for hex, 1 for R, -1 for in-between state
 
-    while (inputType < 0 && (c = (char) getchar()) != '\n')
+    while (inputType < 0 && (c = getchar()) != '\n')
         if ((inputType == -2 && c == '0') || (inputType == -1 && c == 'x'))
             inputType++;
         else if (inputType == -2 && c == 'R')
@@ -162,19 +163,18 @@ static uint8_t *getBinaryFromHex() {
     // The bitTable module implements intuitive accessors for such type
     // of storage.
 
-    size_t bitLength;
-
+    uint8_t *hexTable = calloc(getMaxRank() / 8 + 1, sizeof(uint8_t));
     uint8_t *bitArray = calloc(getMaxRank() / 8 + 1, sizeof(uint8_t));
 
     if (!bitArray)
         exitWithError(0);
 
-    char c;
-    size_t i = 0; // bitArray index
+    int c;
     int hexVal;
     int leadingZeros = 1;
+    size_t i = 0; // bitArray index
 
-    while ((c = (char) getchar()) != EOF && !isspace(c))
+    while ((c = getchar()) != EOF && !isspace(c))
         if (!leadingZeros || c != '0') {
             leadingZeros = 0;
             // in ASCII, numbers and letters are ordered consecutively
@@ -185,36 +185,35 @@ static uint8_t *getBinaryFromHex() {
             else if ('a' <= c && c <= 'f')
                 hexVal = 10 + c - 'a';
 
-            bitLength = setBitsFromHex(&bitArray, i, hexVal);
-
-            if (bitLength > maxInputBitLength)
-                maxInputBitLength = bitLength;
-
+            hexTable[i] = hexVal;
             i++;
         }
 
-    isHexVar = 1;
+    for (size_t j = 0; j < i; j++)
+        setReversedBitsFromHex(&bitArray, j, hexTable[i - j - 1]);
+
+    free(hexTable);
 
     return bitArray;
 }
 
 uint8_t *getBinaryFromR() {
-    uint8_t *bitArray = calloc(getMaxRank()/8 + 1, sizeof(uint8_t));
+    uint8_t *bitArray = calloc(getMaxRank() / 8 + 1, sizeof(uint8_t));
     if (!bitArray) exitWithError(0);
 
     size_t dimProduct = getDimProduct(dimNum);
 
-    #ifdef DEBUG_INPUT
+#ifdef DEBUG_INPUT
     printf("dimProduct: %zu\n", dimProduct);
-    #endif
+#endif
 
     size_t *params = getInput(4, 5);
     size_t a = params[0], b = params[1], m = params[2], r = params[3];
 
-    #ifdef DEBUG_INPUT
+#ifdef DEBUG_INPUT
     for (int i = 0; i < 5; i++)
         printf("params[%lu] = %lu\n", i, params[i]);
-    #endif
+#endif
 
     size_t *sw = malloc((r + 1) * sizeof(size_t));
     // We will later reuse the sw array for storing w_i numbers.
@@ -227,16 +226,16 @@ uint8_t *getBinaryFromR() {
 
     for (size_t i = 1; i <= r; i++) {
         sw[i] = (a * sw[i - 1] + b) % m;
-        #ifdef DEBUG_INPUT
+#ifdef DEBUG_INPUT
         printf("s[%lu] = %lu\n", i, sw[i]);
-        #endif
+#endif
     }
 
     for (size_t i = 0; i <= r; i++) {
         sw[i] = sw[i] % dimProduct;
-        #ifdef DEBUG_INPUT
+#ifdef DEBUG_INPUT
         printf("w[%lu] = %lu\n", i, sw[i]);
-        #endif
+#endif
     }
 
     for (size_t i = 1; i <= r; i++)
@@ -249,6 +248,7 @@ uint8_t *getBinaryFromR() {
 
 size_t *dimProducts;
 
+// TODO przerobić na iterację
 size_t getDimProduct(size_t maxNIndex) {
     if (!dimProducts) {
         dimProducts = malloc(sizeof(size_t) * dimNum);
@@ -278,5 +278,3 @@ size_t getDimProduct(size_t maxNIndex) {
 }
 
 size_t getDimNum() { return dimNum; }
-size_t getMaxInputBitLength() { return maxInputBitLength; }
-int isHex() { return isHexVar; }
