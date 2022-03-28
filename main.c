@@ -17,6 +17,8 @@ int main() {
 
     getFirstInput(dimensions);
 
+    // TODO ujednolicić wszystkie dane w jedną strukturę
+    // ABY SKROCIC LICZBE ARGUMENTOW
     size_t *startPos = getInput(2, getDimNum());
     size_t *endPos = getInput(3, getDimNum());
 
@@ -80,6 +82,6 @@ DA *getDimensions() {
     return dimensions;
 }
 
-DA *getBinaryRep() {
+uint8_t getBinaryRep() {
     return binaryRep;
 }

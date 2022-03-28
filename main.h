@@ -5,6 +5,6 @@
 
 DA *getDimensions();
 
-DA *getBinaryRep();
+uint8_t getBinaryRep();
 
 #endif //MALE_MAIN_H

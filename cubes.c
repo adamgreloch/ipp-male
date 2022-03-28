@@ -66,6 +66,7 @@ size_t rankCube(size_t *cube) {
     return sum;
 }
 
+// TODO optimize
 size_t *unrankCube(size_t cubeRank) {
     size_t dimNum = getDimNum();
     size_t *cubeCords = malloc(dimNum * sizeof(size_t));
