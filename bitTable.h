@@ -1,7 +1,6 @@
 #ifndef MALE_BITTABLE_H
 #define MALE_BITTABLE_H
 
-#include "dynarray.h"
 #include <stdio.h>
 #include <stdint.h>
 

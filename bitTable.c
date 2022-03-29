@@ -1,5 +1,4 @@
 #include "bitTable.h"
-#include "dynarray.h"
 #include "cubes.h"
 
 #define R_MODULO 4294967296
@@ -17,6 +16,8 @@ void setBit(uint8_t **arrayPtr, size_t bitIndex, int bitValue) {
 }
 
 int getBit(uint8_t *arrayPtr, size_t bitIndex) {
+    if (bitIndex > getMaxRank()) return -1;
+
     size_t cellIndex = bitIndex / 8;
     size_t k = 7 - bitIndex % 8;
     int n = arrayPtr[cellIndex];

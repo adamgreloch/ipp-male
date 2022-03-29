@@ -16,16 +16,16 @@
  */
 // TODO wykazać, że rank jest bijekcją
 size_t rankCube(size_t *cube) {
-    DA *dimensions = getDimensions();
+    size_t *dimensions = getDimensions();
     size_t dim, product;
     size_t sum = cube[0] - 1;
-    if (cube[0] > daGet(dimensions, 0))
+    if (cube[0] > dimensions[0])
         // error: cube pos outside dimension
         return -1;
     for (size_t k = 1; k < getDimNum(); k++) {
         product = 1;
         for (size_t i = 0; i < k; i++) {
-            dim = daGet(dimensions, i);
+            dim = dimensions[i];
 #ifdef DEBUG_CUBES
             printf("# cube = %zu, dim = %zu\n", cube[i], dim);
 #endif
@@ -45,12 +45,13 @@ size_t rankCube(size_t *cube) {
 
 // TODO optimize
 size_t *unrankCube(size_t cubeRank) {
+    size_t *dimensions = getDimensions();
     size_t dimNum = getDimNum();
     size_t *cubeCords = malloc(dimNum * sizeof(size_t));
     size_t product;
 
     for (size_t i = 0; i < dimNum; i++) {
-        product = daGet(getDimensions(), i);
+        product = dimensions[i];
         cubeCords[i] = cubeRank % product + 1;
         cubeRank /= product;
     }
@@ -72,16 +73,21 @@ size_t moveRank(size_t cubeRank, size_t dim, int steps) {
         return cubeRank + steps * getDimProduct(dim);
 }
 
+static size_t maxRank = 0;
+
 size_t getMaxRank() {
-    // TODO check if memoization would be useful
-    size_t dimNum = getDimNum();
-    size_t *cubeCords = malloc(dimNum * sizeof(size_t));
+    if (maxRank == 0) {
+        // calculate maxRank and memoize it
+        size_t *dimensions = getDimensions();
+        size_t dimNum = getDimNum();
+        size_t *cubeCords = malloc(dimNum * sizeof(size_t));
 
-    for (size_t i = 0; i < dimNum; i++)
-        cubeCords[i] = daGet(getDimensions(), i);
+        for (size_t i = 0; i < dimNum; i++)
+            cubeCords[i] = dimensions[i];
 
-    size_t maxRank = rankCube(cubeCords);
-    free(cubeCords);
+        maxRank = rankCube(cubeCords);
+        free(cubeCords);
+    }
 
     return maxRank;
 }

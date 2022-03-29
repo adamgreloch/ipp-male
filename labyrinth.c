@@ -83,7 +83,7 @@ static void tryToPush(size_t rankedPos, int mod) {
 }
 
 // TODO too many args
-static void expand(size_t rankedPos, DA *dimensions, int mod) {
+static void expand(size_t rankedPos, size_t *dimensions, int mod) {
     size_t dimNum = getDimNum();
     size_t *pos = unrankCube(rankedPos);
 
@@ -96,7 +96,7 @@ static void expand(size_t rankedPos, DA *dimensions, int mod) {
 #endif
 
     for (size_t i = 0; i < dimNum; i++) {
-        if (pos[i] < daGet(dimensions, i)) {
+        if (pos[i] < dimensions[i]) {
             tryToPush(moveRank(rankedPos, i, 1), 1 - mod);
 #ifdef DEBUG_LABYRINTH
             debugPos = unrankCube(moveRank(rankedPos, i, 1));
@@ -141,7 +141,7 @@ isNoWayOneDim(size_t rankedStartPos, size_t rankedEndPos, uint8_t *binaryRep) {
 int64_t findPath(size_t *startPos, size_t *endPos, uint8_t *binaryRep) {
     size_t rankedStartPos = rankCube(startPos);
     size_t rankedEndPos = rankCube(endPos);
-    DA *dimensions = getDimensions();
+    size_t *dimensions = getDimensions();
 
     if (isNoWayOneDim(rankedStartPos, rankedEndPos, binaryRep))
         return -1;

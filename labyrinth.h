@@ -1,7 +1,6 @@
 #ifndef MALE_LABYRINTH_H
 #define MALE_LABYRINTH_H
 
-#include "dynarray.h"
 #include "stdint.h"
 #include <stddef.h>
 

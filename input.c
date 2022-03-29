@@ -12,6 +12,14 @@
 #define IN 1
 #define OUT 0
 #define INITIAL_SIZE 100
+#define INITIAL_DIM 4
+
+static struct inputData {
+    size_t *dimensions;
+    size_t *startPos;
+    size_t *endPos;
+    size_t *binaryRep;
+};
 
 static size_t dimNum = -1;
 
@@ -27,27 +35,31 @@ static size_t getNum(int *str, size_t i, int inputLine) {
         j++;
     }
     if (inputLine != 4 && num < 1)
-        // input error: numbers have to be positive
+        // Input error: Numbers have to be positive.
         exitWithError(inputLine);
     else
         return num;
 }
 
-// TODO check for abnormal input characters
-
 size_t *getInput(int inputLine, size_t argumentsCount) {
     size_t *inputArr = malloc(argumentsCount * sizeof(size_t));
 
     if (!inputArr)
-        // error: malloc failed
+        // Memory error: malloc failed.
         exitWithError(0);
 
+    size_t *dimensions = getDimensions();
     int *str = malloc(sizeof(char) * UINT16_MAX);
     int state = OUT;
     size_t i = 0, k = 0;
     int c;
 
-    while ((c = getchar()) != '\n') {
+    while ((c = getchar()) != '\n' && c != EOF) {
+        if (isalpha(c)) {
+            free(inputArr);
+            free(str);
+            exitWithError(inputLine);
+        }
         if (state == IN) {
             if (!isspace(c)) {
                 str[i] = c;
@@ -58,6 +70,12 @@ size_t *getInput(int inputLine, size_t argumentsCount) {
 #ifdef DEBUG_INPUT
                 printf("%s -> %zu (k=%zu)\n", str, inputArr[k], k);
 #endif
+                if (inputLine < 4 && inputArr[k] > dimensions[k]) {
+                    // Input error: Input position is outside dimension.
+                    free(inputArr);
+                    free(str);
+                    exitWithError(inputLine);
+                }
                 k++;
                 i = 0;
             }
@@ -77,7 +95,7 @@ size_t *getInput(int inputLine, size_t argumentsCount) {
     }
 
     if (k != argumentsCount) {
-        // input error: unexpected number of input arguments
+        // Input error: Unexpected number of input arguments.
         free(inputArr);
         exitWithError(inputLine);
     }
@@ -92,20 +110,35 @@ size_t *getInput(int inputLine, size_t argumentsCount) {
     return inputArr;
 }
 
-void getFirstInput(DA *arrayPtr) {
+size_t *getFirstInput() {
+    size_t inputSize = INITIAL_DIM;
+    size_t *input = malloc(inputSize * sizeof(size_t));
+    if (!input) exitWithError(0);
+
     int *str = malloc(sizeof(char) * UINT16_MAX);
     int state = OUT;
     size_t i = 0, k = 0;
     int c;
 
     while ((c = getchar()) != '\n') {
+        if (k == inputSize) {
+            inputSize *= 2;
+            input = realloc(input, inputSize * sizeof(size_t));
+            if (!input) exitWithError(0);
+        }
+        if (isalpha(c)) {
+            // Error: Non-digit character encountered.
+            free(input);
+            free(str);
+            exitWithError(1);
+        }
         if (state == IN) {
             if (!isspace(c)) {
                 str[i] = c;
                 i++;
             } else {
                 state = OUT;
-                daPut(arrayPtr, k, getNum(str, i, 1));
+                input[k] = getNum(str, i, 1);
                 k++;
                 i = 0;
             }
@@ -117,18 +150,23 @@ void getFirstInput(DA *arrayPtr) {
     }
 
     if (state == IN) {
-        daPut(arrayPtr, k, getNum(str, i, 1));
+        input[k] = getNum(str, i, 1);
         k++;
     }
 
-    if (k == 0)
-        // input error: labyrinth dimension must be non-zero
+    if (k == 0) {
+        // Input error: Labyrinth dimension must be non-zero.
+        free(input);
+        free(str);
         exitWithError(1);
+    }
 
     if (dimNum == -1)
         dimNum = k;
 
     free(str);
+
+    return input;
 }
 
 /***
@@ -140,13 +178,18 @@ void getFirstInput(DA *arrayPtr) {
  */
 uint8_t *getBinaryWallsRep() {
     int c;
-    int inputType = -2; // 0 for hex, 1 for R, -1 for in-between state
+    int inputType = -2; // (-2)->(-1)->0 for hex, (-2)->1 for R
 
-    while (inputType < 0 && (c = getchar()) != '\n')
+    while (inputType < 0) {
+        c = getchar();
+        if (inputType != -2 && isspace(c))
+            // Input error: Space between '0' and 'x' encountered.
+            exitWithError(4);
         if ((inputType == -2 && c == '0') || (inputType == -1 && c == 'x'))
             inputType++;
         else if (inputType == -2 && c == 'R')
             inputType = 1;
+    }
     if (inputType == 0)
         return getBinaryFromHex();
     else
@@ -171,17 +214,29 @@ static uint8_t *getBinaryFromHex() {
     int c;
     int hexVal;
     int leadingZeros = 1;
+    int foundWhitespace = 0;
     size_t i = 0; // bitArray index
 
-    while ((c = getchar()) != EOF && !isspace(c)) {
-        if (i == tableSize) {
-            tableSize *= 2;
-            hexTable = realloc(hexTable, tableSize * sizeof(uint8_t));
-            if (!hexTable) exitWithError(0);
+    while ((c = getchar()) != EOF && c != '\n') {
+        if (isspace(c))
+            foundWhitespace = 1;
+
+        else if (foundWhitespace) {
+            // Input error: Whitespace between digits encountered.
+            free(hexTable);
+            exitWithError(4);
         }
-        if (!leadingZeros || c != '0') {
+
+        else if (!leadingZeros || c != '0') {
             leadingZeros = 0;
-            // in ASCII, numbers and letters are ordered consecutively
+
+            if (i == tableSize) {
+                tableSize *= 2;
+                hexTable = realloc(hexTable, tableSize * sizeof(uint8_t));
+                if (!hexTable) exitWithError(0);
+            }
+
+            // In ASCII, numbers and letters are ordered consecutively.
             if ('0' <= c && c <= '9')
                 hexVal = c - '0';
             else if ('A' <= c && c <= 'F')
@@ -194,8 +249,16 @@ static uint8_t *getBinaryFromHex() {
         }
     }
 
-    uint8_t *bitArray = calloc(tableSize, sizeof(uint8_t));
-    if (!bitArray) exitWithError(0);
+    if (i > 1 && 4*i > getDimProduct(dimNum)) {
+        free(hexTable);
+        exitWithError(4);
+    }
+
+    uint8_t *bitArray = calloc(getMaxRank()/8 + 1, sizeof(uint8_t));
+    if (!bitArray) {
+        free(hexTable);
+        exitWithError(0);
+    }
 
     for (size_t j = 0; j < i; j++)
         setReversedBitsFromHex(&bitArray, j, hexTable[i - j - 1]);
@@ -206,7 +269,6 @@ static uint8_t *getBinaryFromHex() {
 }
 
 uint8_t *getBinaryFromR() {
-    // TODO implement dynamic tables
     uint8_t *bitArray = calloc(getMaxRank() / 8 + 1, sizeof(uint8_t));
     if (!bitArray) exitWithError(0);
 
@@ -261,7 +323,7 @@ size_t *dimProducts;
 size_t getDimProduct(size_t maxNIndex) {
     if (!dimProducts) {
         dimProducts = malloc(sizeof(size_t) * dimNum);
-        dimProducts[0] = daGet(getDimensions(), 0);
+        dimProducts[0] = (getDimensions())[0];
 
         for (size_t i = 1; i < dimNum; i++)
             dimProducts[i] = 0;
@@ -276,14 +338,18 @@ size_t getDimProduct(size_t maxNIndex) {
         size_t product, a, b;
 
         a = getDimProduct(maxNIndex - 1);
-        b = daGet(getDimensions(), maxNIndex - 1);
+        b = (getDimensions())[maxNIndex - 1];
         product = a * b;
 
-        if (a != product / b) exitWithError(1);
+        if (a != product / b) {
+            free(dimProducts);
+            exitWithError(1);
+        }
 
         dimProducts[maxNIndex - 1] = product;
         return product;
     }
 }
 
+size_t *getDimProductsPtr() {return dimProducts; }
 size_t getDimNum() { return dimNum; }
