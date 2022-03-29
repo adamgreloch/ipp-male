@@ -12,11 +12,18 @@ ans_passed=0
 ans_failed=0
 err_passed=0
 err_failed=0
+mem_errors=0
 
 time for f in "$2"/*.in
 do
     # todo: valgrind $VALARGS $1 < $file 2> /tmp/lab.err > /tmp/lab.out
-    ./"$1" < "$f" > "${f%in}outp" 2>"${f%in}errp"
+    valgrind --error-exitcode=123 \
+             --leak-check=full \
+             --show-leak-kinds=all \
+             --errors-for-leak-kinds=all \
+             --quiet \
+             --log-file="${f%in}memerr" \
+    ./"$1" <"$f" 1>"${f%in}outp" 2>"${f%in}errp"
 
     echo -en "--- ${f#*/}\n";
     if diff "${f%in}outp" "${f%in}out" > /dev/null 1>&1
@@ -25,7 +32,7 @@ do
         ((ans_passed++))
     else
         echo -e "answer ${RED}failed${RESET}:"
-        diff -y -W 30 "${f%in}outp" "${f%in}out"
+        diff -y -W 50 "${f%in}outp" "${f%in}out"
         ((ans_failed++))
     fi
 
@@ -35,15 +42,25 @@ do
         ((err_passed++))
     else
         echo -e "error ${RED}failed${RESET}:"
-        diff -y -W 30 "${f%in}errp" "${f%in}err"
+        diff -y -W 50 "${f%in}errp" "${f%in}err"
         ((err_failed++))
+    fi
+
+    if [ ! -s "${f%in}memerr" ]
+    then
+        echo -e "memory ${GREEN}OK${RESET}"
+    else
+        echo -e "${RED}memory problems!${RESET}"
+        cat "${f%in}memerr"
+        ((mem_errors++))
     fi
 done
 
-ans_total=$((ans_passed+ans_failed))
-err_total=$((err_passed+err_failed))
+total=$((ans_passed+ans_failed))
 
 echo -e "\nIn total:"
-echo -e "Correct answers: $ans_passed/$ans_total"
-echo "Correct errors: $err_passed/$err_total"
+echo "Number of tests: $total"
+echo -e "Correct answers: $ans_passed"
+echo "Errors handled correctly: $err_passed"
+echo "Tests where memory issues occured: $mem_errors"
 
