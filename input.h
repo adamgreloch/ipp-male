@@ -2,15 +2,22 @@
 #define MALE_INPUT_H
 
 #include "stdint.h"
+#include "stddef.h"
 
-size_t *getFirstInput();
+struct inputData {
+    size_t *dimensions;
+    size_t *startPos;
+    size_t *endPos;
+    uint8_t *binaryRep;
+    size_t dimNum;
+    size_t *dimProducts;
+};
 
-size_t *getInput(int inputLine, size_t argumentsCount);
+typedef struct inputData inputData;
 
-size_t getDimNum();
+inputData *getInputData();
 
 size_t getDimProduct(size_t maxNIndex);
-size_t *getDimProductsPtr();
 
 uint8_t *getBinaryWallsRep();
 

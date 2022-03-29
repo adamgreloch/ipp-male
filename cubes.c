@@ -1,6 +1,4 @@
 #include "cubes.h"
-#include "bitTable.h"
-#include "main.h"
 #include <stdlib.h>
 
 //#define DEBUG_CUBES
@@ -15,17 +13,16 @@
  * @returns bitNumber.
  */
 // TODO wykazać, że rank jest bijekcją
-size_t rankCube(size_t *cube) {
-    size_t *dimensions = getDimensions();
+size_t rankCube(size_t *cube, inputData *d) {
     size_t dim, product;
     size_t sum = cube[0] - 1;
-    if (cube[0] > dimensions[0])
+    if (cube[0] > (d->dimensions)[0])
         // error: cube pos outside dimension
         return -1;
-    for (size_t k = 1; k < getDimNum(); k++) {
+    for (size_t k = 1; k < d->dimNum; k++) {
         product = 1;
         for (size_t i = 0; i < k; i++) {
-            dim = dimensions[i];
+            dim = (d->dimensions)[i];
 #ifdef DEBUG_CUBES
             printf("# cube = %zu, dim = %zu\n", cube[i], dim);
 #endif
@@ -44,14 +41,12 @@ size_t rankCube(size_t *cube) {
 }
 
 // TODO optimize
-size_t *unrankCube(size_t cubeRank) {
-    size_t *dimensions = getDimensions();
-    size_t dimNum = getDimNum();
-    size_t *cubeCords = malloc(dimNum * sizeof(size_t));
+size_t *unrankCube(size_t cubeRank, inputData *d) {
+    size_t *cubeCords = malloc((d->dimNum) * sizeof(size_t));
     size_t product;
 
-    for (size_t i = 0; i < dimNum; i++) {
-        product = dimensions[i];
+    for (size_t i = 0; i < d->dimNum; i++) {
+        product = (d->dimensions)[i];
         cubeCords[i] = cubeRank % product + 1;
         cubeRank /= product;
     }
@@ -75,17 +70,14 @@ size_t moveRank(size_t cubeRank, size_t dim, int steps) {
 
 static size_t maxRank = 0;
 
-size_t getMaxRank() {
+size_t getMaxRank(inputData *d) {
     if (maxRank == 0) {
-        // calculate maxRank and memoize it
-        size_t *dimensions = getDimensions();
-        size_t dimNum = getDimNum();
-        size_t *cubeCords = malloc(dimNum * sizeof(size_t));
+        size_t *cubeCords = malloc((d->dimNum) * sizeof(size_t));
 
-        for (size_t i = 0; i < dimNum; i++)
-            cubeCords[i] = dimensions[i];
+        for (size_t i = 0; i < d->dimNum; i++)
+            cubeCords[i] = (d->dimensions)[i];
 
-        maxRank = rankCube(cubeCords);
+        maxRank = rankCube(cubeCords, d);
         free(cubeCords);
     }
 

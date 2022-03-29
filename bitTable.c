@@ -15,8 +15,8 @@ void setBit(uint8_t **arrayPtr, size_t bitIndex, int bitValue) {
         (*arrayPtr)[cellIndex] &= ~(1 << k);
 }
 
-int getBit(uint8_t *arrayPtr, size_t bitIndex) {
-    if (bitIndex > getMaxRank()) return -1;
+int getBit(uint8_t *arrayPtr, size_t bitIndex, inputData *d) {
+    if (bitIndex > getMaxRank(d)) return -1;
 
     size_t cellIndex = bitIndex / 8;
     size_t k = 7 - bitIndex % 8;
@@ -48,8 +48,8 @@ setReversedBitsFromHex(uint8_t **arrayPtr, size_t valueIndex, int hexValue) {
         (*arrayPtr)[cellIndex] |= reverseBitOrder(hexValue) >> 4;
 }
 
-void setBitsFromR(uint8_t **arrayPtr, size_t index) {
-    while (index <= getMaxRank()) {
+void setBitsFromR(uint8_t **arrayPtr, size_t index, inputData *d) {
+    while (index <= getMaxRank(d)) {
         setBit(arrayPtr, index, 1);
         index += R_MODULO;
     }

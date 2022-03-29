@@ -16,7 +16,6 @@ mem_errors=0
 
 time for f in "$2"/*.in
 do
-    # todo: valgrind $VALARGS $1 < $file 2> /tmp/lab.err > /tmp/lab.out
     valgrind --error-exitcode=123 \
              --leak-check=full \
              --show-leak-kinds=all \

@@ -1,8 +1,7 @@
 #include "labyrinth.h"
 #include "bitTable.h"
 #include "cubes.h"
-#include "err.h"
-#include "main.h"
+#include "errMem.h"
 
 //#define DEBUG_LABYRINTH
 
@@ -59,6 +58,7 @@ static size_t pop(stack *s) {
 static void empty(stack *s) {
     while (!isEmpty(s))
         pop(s);
+    free(s);
 }
 
 static uint8_t *visited;
@@ -66,12 +66,12 @@ static stack *mod0Stack;
 static stack *mod1Stack;
 
 // TODO optimize, too many args (can pass on stacks, no need for global)
-static void tryToPush(size_t rankedPos, int mod) {
+static void tryToPush(size_t rankedPos, int mod, inputData *d) {
 #ifdef DEBUG_LABYRINTH
     printf("# try %zu, mod = %zu\n", rankedPos, mod);
 #endif
 
-    if (!getBit(visited, rankedPos)) {
+    if (!getBit(visited, rankedPos, d)) {
         setBit(&visited, rankedPos, 1);
         push(mod ? mod1Stack : mod0Stack, rankedPos);
 
@@ -83,9 +83,8 @@ static void tryToPush(size_t rankedPos, int mod) {
 }
 
 // TODO too many args
-static void expand(size_t rankedPos, size_t *dimensions, int mod) {
-    size_t dimNum = getDimNum();
-    size_t *pos = unrankCube(rankedPos);
+static void expand(size_t rankedPos, int mod, inputData *d) {
+    size_t *pos = unrankCube(rankedPos, d);
 
 #ifdef DEBUG_LABYRINTH
     size_t *debugPos;
@@ -95,9 +94,9 @@ static void expand(size_t rankedPos, size_t *dimensions, int mod) {
     printf("]\n");
 #endif
 
-    for (size_t i = 0; i < dimNum; i++) {
-        if (pos[i] < dimensions[i]) {
-            tryToPush(moveRank(rankedPos, i, 1), 1 - mod);
+    for (size_t i = 0; i < d->dimNum; i++) {
+        if (pos[i] < (d->dimensions)[i]) {
+            tryToPush(moveRank(rankedPos, i, 1), 1 - mod, d);
 #ifdef DEBUG_LABYRINTH
             debugPos = unrankCube(moveRank(rankedPos, i, 1));
             printf("# ^EXPANDED FORWARD for %zu, i = %zu:\n# [", rankedPos, i);
@@ -108,7 +107,7 @@ static void expand(size_t rankedPos, size_t *dimensions, int mod) {
 #endif
         }
         if (pos[i] > 1) {
-            tryToPush(moveRank(rankedPos, i, -1), 1 - mod);
+            tryToPush(moveRank(rankedPos, i, -1), 1 - mod, d);
 #ifdef DEBUG_LABYRINTH
             debugPos = unrankCube(moveRank(rankedPos, i, -1));
             printf("# ^EXPANDED BACK for %zu, i = %zu:\n# [", rankedPos, i);
@@ -119,34 +118,32 @@ static void expand(size_t rankedPos, size_t *dimensions, int mod) {
 #endif
         }
     }
-
     free(pos);
 }
 
 static int
-isNoWayOneDim(size_t rankedStartPos, size_t rankedEndPos, uint8_t *binaryRep) {
-    if (getDimNum() != 1) return 0;
+isNoWayOneDim(size_t rankedStartPos, size_t rankedEndPos, inputData *d) {
+    if (d->dimNum != 1) return 0;
     size_t min = rankedStartPos, max = rankedEndPos;
     if (rankedStartPos > rankedEndPos) {
         min = rankedEndPos;
         max = rankedStartPos;
     }
     for (size_t i = min; i < max; i++)
-        if (getBit(binaryRep, i))
+        if (getBit(d->binaryRep, i, d))
             return 1;
 
     return 0;
 }
 
-int64_t findPath(size_t *startPos, size_t *endPos, uint8_t *binaryRep) {
-    size_t rankedStartPos = rankCube(startPos);
-    size_t rankedEndPos = rankCube(endPos);
-    size_t *dimensions = getDimensions();
+int64_t findPath(inputData *d) {
+    size_t rankedStartPos = rankCube(d->startPos, d);
+    size_t rankedEndPos = rankCube(d->endPos, d);
 
-    if (isNoWayOneDim(rankedStartPos, rankedEndPos, binaryRep))
+    if (isNoWayOneDim(rankedStartPos, rankedEndPos, d))
         return -1;
 
-    visited = binaryRep;
+    visited = d->binaryRep;
 
     mod0Stack = malloc(sizeof(stack));
     mod1Stack = malloc(sizeof(stack));
@@ -172,16 +169,17 @@ int64_t findPath(size_t *startPos, size_t *endPos, uint8_t *binaryRep) {
     while (!foundPath && !isEmpty(stacks[mod])) {
         while (!isEmpty(stacks[mod])) {
             pos = pop(stacks[mod]);
-            if (pos == rankedEndPos) {
+            if (pos == rankedEndPos)
                 foundPath = 1;
-                empty(mod0Stack);
-                empty(mod1Stack);
-            } else
-                expand(pos, dimensions, mod);
+            else
+                expand(pos, mod, d);
         }
         mod = 1 - mod;
         pathLength++;
     }
+
+    empty(mod0Stack);
+    empty(mod1Stack);
 
     if (!foundPath)
         return -1;
