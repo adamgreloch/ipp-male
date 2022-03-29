@@ -38,7 +38,7 @@ int main() {
     printf("%zu\n", getDimProduct(getDimNum()));
 #endif
 
-    uint8_t binaryRep = getBinaryWallsRep();
+    uint8_t *binaryRep = getBinaryWallsRep();
 
     if (getchar() != EOF) {
         // input error: too many input lines

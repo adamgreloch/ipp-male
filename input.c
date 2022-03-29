@@ -11,6 +11,7 @@
 
 #define IN 1
 #define OUT 0
+#define INITIAL_SIZE 100
 
 static size_t dimNum = -1;
 
@@ -163,18 +164,21 @@ static uint8_t *getBinaryFromHex() {
     // The bitTable module implements intuitive accessors for such type
     // of storage.
 
-    uint8_t *hexTable = calloc(getMaxRank() / 8 + 1, sizeof(uint8_t));
-    uint8_t *bitArray = calloc(getMaxRank() / 8 + 1, sizeof(uint8_t));
-
-    if (!bitArray)
-        exitWithError(0);
+    size_t tableSize = INITIAL_SIZE;
+    uint8_t *hexTable = malloc(tableSize * sizeof(uint8_t));
+    if (!hexTable) exitWithError(0);
 
     int c;
     int hexVal;
     int leadingZeros = 1;
     size_t i = 0; // bitArray index
 
-    while ((c = getchar()) != EOF && !isspace(c))
+    while ((c = getchar()) != EOF && !isspace(c)) {
+        if (i == tableSize) {
+            tableSize *= 2;
+            hexTable = realloc(hexTable, tableSize * sizeof(uint8_t));
+            if (!hexTable) exitWithError(0);
+        }
         if (!leadingZeros || c != '0') {
             leadingZeros = 0;
             // in ASCII, numbers and letters are ordered consecutively
@@ -188,6 +192,10 @@ static uint8_t *getBinaryFromHex() {
             hexTable[i] = hexVal;
             i++;
         }
+    }
+
+    uint8_t *bitArray = calloc(tableSize, sizeof(uint8_t));
+    if (!bitArray) exitWithError(0);
 
     for (size_t j = 0; j < i; j++)
         setReversedBitsFromHex(&bitArray, j, hexTable[i - j - 1]);
@@ -198,6 +206,7 @@ static uint8_t *getBinaryFromHex() {
 }
 
 uint8_t *getBinaryFromR() {
+    // TODO implement dynamic tables
     uint8_t *bitArray = calloc(getMaxRank() / 8 + 1, sizeof(uint8_t));
     if (!bitArray) exitWithError(0);
 

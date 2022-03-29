@@ -12,6 +12,7 @@ all: $(addprefix build/, $(OBJ))
 	$(CC) $(CFLAGS) -o build/labyrinth $^
 
 build/%.o: %.c
+	@mkdir -p build
 	$(CC) $(CFLAGS) -c $^ -o $@
 
 clean:
