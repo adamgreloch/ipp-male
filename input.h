@@ -36,7 +36,7 @@ typedef struct inputData inputData;
 
 /**
  * @brief Gets input from the stdin.
- * @return Input data pointer..
+ * @return Input data pointer.
  */
 inputData *getInputData();
 

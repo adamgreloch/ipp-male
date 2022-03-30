@@ -27,7 +27,7 @@ void setBit(uint8_t **arrayPtr, size_t bitIndex, int bitValue);
  * is non-NULL.
  * @param arrayPtr - BitTable pointer.
  * @param bitIndex - Index of bit that is being accessed.
- * @param d - Input data pointer..
+ * @param d - Input data pointer.
  * @return Bit value.
  */
 int getBit(uint8_t *arrayPtr, size_t bitIndex, inputData *d);
@@ -44,9 +44,10 @@ void setRevBitsFromHex(uint8_t **arrayPtr, size_t valueIndex, int hexValue);
 
 /**
  * Lights up every j-th bit such that j mod 2^32 = w_i.
+ * @warn Assumes arrayPtr is non-NULL.
  * @param arrayPtr - BitTable pointer.
  * @param w - A particular w_i parameter.
- * @param d - Input data pointer..
+ * @param d - Input data pointer.
  */
 void setBitsFromR(uint8_t **arrayPtr, size_t w, inputData *d);
 

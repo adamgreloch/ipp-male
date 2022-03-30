@@ -5,8 +5,13 @@ RED='\033[0;31m'
 #WHITE='\033[0;37m'
 RESET='\033[0m'
 
-rm -f "$2"/*.outp
-rm -f "$2"/*.errp
+# Clean up.
+for f in "$2"/*.in
+do
+    rm -f "${f%in}outp" > /dev/null
+    rm -f "${f%in}errp" > /dev/null
+    rm -f "${f%in}memerr" > /dev/null
+done
 
 ans_passed=0
 ans_failed=0

@@ -11,14 +11,14 @@
 
 /**
  * @brief Frees input data.
- * @param d - Input data pointer..
+ * @param d - Input data pointer.
  */
 void freeData(inputData *d);
 
 /**
  * @brief Frees collected input data and exits with code 1.
  * @param errNum - Error ID.
- * @param d - Input data pointer..
+ * @param d - Input data pointer.
  */
 void exitWithError(int errNum, inputData *dataToFree);
 
