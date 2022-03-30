@@ -2,8 +2,6 @@
 #include "cubes.h"
 
 #define R_MODULO 4294967296
-//#define DEBUG_BITTABLE
-//#define DEBUG_R
 
 void setBit(uint8_t **arrayPtr, size_t bitIndex, int bitValue) {
     size_t cellIndex = bitIndex / 8;
@@ -36,10 +34,8 @@ static uint8_t reverseBitOrder(uint8_t value) {
     return rev;
 }
 
-/// converts hex values to reversed bit order
-/// @returns current bit length
 void
-setReversedBitsFromHex(uint8_t **arrayPtr, size_t valueIndex, int hexValue) {
+setRevBitsFromHex(uint8_t **arrayPtr, size_t valueIndex, int hexValue) {
     size_t cellIndex = valueIndex / 2;
 
     if (valueIndex % 2 == 0)
@@ -48,9 +44,9 @@ setReversedBitsFromHex(uint8_t **arrayPtr, size_t valueIndex, int hexValue) {
         (*arrayPtr)[cellIndex] |= reverseBitOrder(hexValue) >> 4;
 }
 
-void setBitsFromR(uint8_t **arrayPtr, size_t index, inputData *d) {
-    while (index <= getMaxRank(d)) {
-        setBit(arrayPtr, index, 1);
-        index += R_MODULO;
+void setBitsFromR(uint8_t **arrayPtr, size_t w, inputData *d) {
+    while (w <= getMaxRank(d)) {
+        setBit(arrayPtr, w, 1);
+        w += R_MODULO;
     }
 }

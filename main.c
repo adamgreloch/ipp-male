@@ -4,7 +4,6 @@
 #include <stdint.h>
 
 int main() {
-
     inputData *d = getInputData();
 
     int64_t pathLength = findPath(d);
@@ -15,6 +14,5 @@ int main() {
         printf("%d\n", pathLength);
 
     freeData(d);
-
     return 0;
 }

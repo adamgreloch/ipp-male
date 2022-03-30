@@ -3,7 +3,7 @@
 #include "cubes.h"
 #include "errMem.h"
 
-//#define DEBUG_LABYRINTH
+static uint8_t *visited;
 
 static struct node {
     size_t data;
@@ -16,6 +16,9 @@ static struct stack {
     node *top;
 };
 typedef struct stack stack;
+
+static stack *mod0Stack;
+static stack *mod1Stack;
 
 static void init(stack *s) {
     s->size = 0;
@@ -46,12 +49,8 @@ static size_t pop(stack *s) {
     size_t popped = s->top->data;
     s->top = s->top->next;
     s->size--;
+
     free(tmp);
-
-#ifdef DEBUG_LABYRINTH
-    printf("# %d <- q\n", popped);
-#endif
-
     return popped;
 }
 
@@ -61,66 +60,49 @@ static void empty(stack *s) {
     free(s);
 }
 
-static uint8_t *visited;
-static stack *mod0Stack;
-static stack *mod1Stack;
-
-// TODO optimize, too many args (can pass on stacks, no need for global)
+/**
+ * @brief Tries to push a cube into a stack. Will succeed if the cube is not a
+ * wall and was not visited earlier.
+ * @param rankedPos - Rank of cube.
+ * @param mod - Path length modulo 2.
+ * @param d - Input data pointer.
+ */
 static void tryToPush(size_t rankedPos, int mod, inputData *d) {
-#ifdef DEBUG_LABYRINTH
-    printf("# try %zu, mod = %zu\n", rankedPos, mod);
-#endif
-
     if (!getBit(visited, rankedPos, d)) {
         setBit(&visited, rankedPos, 1);
         push(mod ? mod1Stack : mod0Stack, rankedPos);
-
-#ifdef DEBUG_LABYRINTH
-        printf("# visited %d\n", rankedPos);
-        printf("# %d -> q (mod %d)\n", rankedPos, mod);
-#endif
     }
 }
 
-// TODO too many args
+/**
+ * @brief Expands broader into a graph.
+ * @param rankedPos - Rank of cube.
+ * @param mod - Path length modulo 2.
+ * @param d - Input data pointer.
+ */
 static void expand(size_t rankedPos, int mod, inputData *d) {
     size_t *pos = unrankCube(rankedPos, d);
 
-#ifdef DEBUG_LABYRINTH
-    size_t *debugPos;
-    printf("# WILL EXPAND for %zu:\n# [", rankedPos);
-    for (int z = 0; z < dimNum; z++)
-        printf("%d, ", pos[z]);
-    printf("]\n");
-#endif
-
     for (size_t i = 0; i < d->dimNum; i++) {
-        if (pos[i] < (d->dimensions)[i]) {
+        if (pos[i] < (d->dimensions)[i])
             tryToPush(moveRank(rankedPos, i, 1), 1 - mod, d);
-#ifdef DEBUG_LABYRINTH
-            debugPos = unrankCube(moveRank(rankedPos, i, 1));
-            printf("# ^EXPANDED FORWARD for %zu, i = %zu:\n# [", rankedPos, i);
-            for (int z = 0; z < dimNum; z++)
-                printf("%d, ", debugPos[z]);
-            printf("] ---- as %d\n", moveRank(rankedPos, i, 1));
-            free(debugPos);
-#endif
-        }
-        if (pos[i] > 1) {
+        if (pos[i] > 1)
             tryToPush(moveRank(rankedPos, i, -1), 1 - mod, d);
-#ifdef DEBUG_LABYRINTH
-            debugPos = unrankCube(moveRank(rankedPos, i, -1));
-            printf("# ^EXPANDED BACK for %zu, i = %zu:\n# [", rankedPos, i);
-            for (int z = 0; z < dimNum; z++)
-                printf("%d, ", debugPos[z]);
-            printf("] ---- as %d\n", moveRank(rankedPos, i, -1));
-            free(debugPos);
-#endif
-        }
     }
     free(pos);
 }
 
+/**
+ * @brief Checks whether a given labyrinth configuration is onedimensional
+ * and thus if it is even worth breadth searching.
+ * @details If a labyrinth is one-dimensional, it is easy to determine
+ * whether a path exists by checking if there exists a wall between
+ * startPos and endPos, since that would be the only possible path.
+ * @param rankedStartPos
+ * @param rankedEndPos
+ * @param d - Input data pointer.
+ * @return 1 if the labyrinth is 1D and there is no possible path, 0 otherwise.
+ */
 static int
 isNoWayOneDim(size_t rankedStartPos, size_t rankedEndPos, inputData *d) {
     if (d->dimNum != 1) return 0;
@@ -136,35 +118,49 @@ isNoWayOneDim(size_t rankedStartPos, size_t rankedEndPos, inputData *d) {
     return 0;
 }
 
+/**
+ * Initialize mod0 and mod1 stacks used for BFS.
+ * @return Table of two stacks.
+ */
+static stack **initStacks() {
+    mod0Stack = malloc(sizeof(stack));
+    mod1Stack = malloc(sizeof(stack));
+    init(mod0Stack);
+    init(mod1Stack); // TODO specialize init
+
+    stack **stacks = malloc(2*sizeof(stack));
+
+    stacks[0] = mod0Stack;
+    stacks[1] = mod1Stack;
+
+    return stacks;
+}
+
+static void freeStacks(stack **stacks) {
+    empty(mod0Stack);
+    empty(mod1Stack);
+    free(stacks);
+}
+
 int64_t findPath(inputData *d) {
     size_t rankedStartPos = rankCube(d->startPos, d);
     size_t rankedEndPos = rankCube(d->endPos, d);
+    size_t pos;
 
     if (isNoWayOneDim(rankedStartPos, rankedEndPos, d))
         return -1;
 
     visited = d->binaryRep;
 
-    mod0Stack = malloc(sizeof(stack));
-    mod1Stack = malloc(sizeof(stack));
-    init(mod0Stack);
-    init(mod1Stack); // TODO specialize init
+    stack **stacks = initStacks();
 
     setBit(&visited, rankedStartPos, 1);
     push(mod0Stack, rankedStartPos);
 
-    stack *stacks[2] = {mod0Stack, mod1Stack};
-
     int foundPath = 0;
     int mod = 0;
 
-    size_t pos;
     int64_t pathLength = -1;
-
-#ifdef DEBUG_LABYRINTH
-    printf("# rankedStartPos = %d\n", rankedStartPos);
-    printf("# rankedEndPos = %d\n", rankedEndPos);
-#endif
 
     while (!foundPath && !isEmpty(stacks[mod])) {
         while (!isEmpty(stacks[mod])) {
@@ -178,8 +174,7 @@ int64_t findPath(inputData *d) {
         pathLength++;
     }
 
-    empty(mod0Stack);
-    empty(mod1Stack);
+    freeStacks(stacks);
 
     if (!foundPath)
         return -1;
