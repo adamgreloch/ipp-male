@@ -84,16 +84,19 @@ static size_t getNum(int *str, size_t i) {
  * @param p - Parse data pointer.
  */
 static void tryToParse(size_t **parsed, parseData *p) {
-    size_t num = getNum(p->str, p->i);
+    if (p->k == p->inputSize) p->state = ERR; // ERR: More args than expected.
+    else {
+        size_t num = getNum(p->str, p->i);
 
-    if (p->line != 4)
-        if (num < 1 || (p->line != 1 && (d->dimensions)[p->k] < num))
-            // TODO make better logic
-            // Error: Position is outside dimension or not positive.
-            p->state = ERR;
+        if (p->line != 4)
+            if (num < 1 || (p->line != 1 && (d->dimensions)[p->k] < num))
+                // ERR: Position was not positive when it should or was
+                // outside dimension.
+                p->state = ERR;
 
-    (*parsed)[p->k] = num;
-    (p->k)++;
+        (*parsed)[p->k] = num;
+        (p->k)++;
+    }
 }
 
 /**
@@ -104,12 +107,11 @@ static void tryToParse(size_t **parsed, parseData *p) {
  * @param p - Parse data pointer.
  */
 static void stringConstructor(int c, size_t **parsed, parseData *p) {
-    if (p->k == p->inputSize)
-        if (p->line == 1) {
+    if (p->line == 1 && p->k == p->inputSize) {
             p->inputSize *= 2;
             *parsed = realloc(*parsed, p->inputSize * sizeof(size_t));
             if (!(*parsed)) p->state = ERR;
-        } else p->state = ERR; // Got more input args than expected.
+        }
     if (isalpha(c)) p->state = ERR;
     if (p->state == IN) {
         if (!isspace(c)) {
@@ -142,18 +144,18 @@ static size_t *getInputLine(int line, size_t argumentsCount) {
     size_t *parsed = safe_malloc((p->inputSize) * sizeof(size_t));
 
     int c;
-    while (p->state != ERR && (c = getchar()) != '\n')
+    while (p->state != ERR && (c = getchar()) != '\n' && c != EOF)
         stringConstructor(c, &parsed, p);
 
-    if ((p->state) == IN) tryToParse(&parsed, p); // TODO handle wojtekr_zly08.in
+    if ((p->state) == IN) tryToParse(&parsed, p);
 
     if (p->state == ERR) {
-        if (!parsed) exitWithError(0, d); // ERR because realloc failed.
+        if (!parsed) exitWithError(0, d); // ERR: realloc failed earlier.
         free(parsed); freeParseData(p); return NULL; // ...any other error.
     }
 
     if (p->line != 1 && p->k < argumentsCount) {
-        // Error: Got less input arguments than expected.
+        // ERR: Got less input arguments than expected.
         free(parsed); freeParseData(p); return NULL;
     }
 
@@ -209,11 +211,11 @@ static uint8_t *getBinaryFromHex() {
     int foundWhitespace = 0;
     size_t i = 0; // bitArray index
 
-    while (state != ERR && (c = getchar()) != EOF && c != '\n') {
+    while (state != ERR && (c = getchar()) != '\n' && c != EOF) {
         if (isspace(c))
             foundWhitespace = 1;
         else if (foundWhitespace) state = ERR;
-            // Input error: Whitespace between digits encountered.
+            // ERR: Whitespace between digits encountered.
         else if (!leadingZeros || c != '0') {
             leadingZeros = 0;
             if (i == tableSize) {
