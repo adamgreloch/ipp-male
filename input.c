@@ -32,6 +32,32 @@ static void *safe_calloc(size_t num, size_t size) {
     return p;
 }
 
+static struct parseData {
+    int *str;
+    int state;
+    int line;
+    size_t i;
+    size_t k;
+    size_t inputSize;
+};
+
+typedef struct parseData parseData;
+
+static parseData *initParseData(int line) {
+    parseData *p = safe_malloc(sizeof(parseData));
+    p->str = safe_malloc(sizeof(int) * UINT16_MAX);
+    p->line = line;
+    p->state = OUT;
+    p->i = p->k = 0;
+
+    return p;
+}
+
+static void freeParseData(parseData *p) {
+    free(p->str);
+    free(p);
+}
+
 /**
  * Gets numerical size_t value from a given string.
  * @warn Assumes str != NULL.
@@ -52,28 +78,53 @@ static size_t getNum(int *str, size_t i) {
 }
 
 /**
- * Tries to parse a given string. Will return 0 if resulting number does not
- * meet all input criteria.
+ * Tries to parse a given string. Will set p->state as ERR if parsed number
+ * is incorrect.
  * @param parsed - Array of parsed input numbers.
- * @param str - String to parse.
- * @param line - Input line.
- * @param k - Next free number index in parsed array.
- * @param i - Last char index.
- * @return Next increment of k or 0 if criteria check failed.
+ * @param p - Parse data pointer.
  */
-static size_t tryToParse(size_t **parsed, int *str,
-                         size_t line, size_t k, size_t i) {
-    size_t num = getNum(str, i);
+static void tryToParse(size_t **parsed, parseData *p) {
+    size_t num = getNum(p->str, p->i);
 
-    if (line != 4)
-        if (num < 1 || (line != 1 && (d->dimensions)[k] < num)) {
+    if (p->line != 4)
+        if (num < 1 || (p->line != 1 && (d->dimensions)[p->k] < num))
+            // TODO make better logic
             // Error: Position is outside dimension or not positive.
-            free(*parsed); free(str); return 0;
-        }
+            p->state = ERR;
 
-    (*parsed)[k] = num;
-    k++;
-    return k;
+    (*parsed)[p->k] = num;
+    (p->k)++;
+}
+
+/**
+ * Constructs an array of chars, char by char. Checks for some immediate
+ * input errors.
+ * @param c - Input character.
+ * @param parsed - Array of parsed input numbers.
+ * @param p - Parse data pointer.
+ */
+static void stringConstructor(int c, size_t **parsed, parseData *p) {
+    if (p->k == p->inputSize)
+        if (p->line == 1) {
+            p->inputSize *= 2;
+            *parsed = realloc(*parsed, p->inputSize * sizeof(size_t));
+            if (!(*parsed)) p->state = ERR;
+        } else p->state = ERR; // Got more input args than expected.
+    if (isalpha(c)) p->state = ERR;
+    if (p->state == IN) {
+        if (!isspace(c)) {
+            (p->str)[p->i] = c;
+            (p->i)++;
+        } else {
+            p->state = OUT;
+            tryToParse(parsed, p);
+            p->i = 0;
+        }
+    } else if (!isspace(c)) {
+        p->state = IN;
+        (p->str)[p->i] = c;
+        (p->i)++;
+    }
 }
 
 /**
@@ -84,59 +135,31 @@ static size_t tryToParse(size_t **parsed, int *str,
  * @return Parsed input array.
  */
 static size_t *getInputLine(int line, size_t argumentsCount) {
-    int *str = safe_malloc(sizeof(char) * UINT16_MAX);
-    size_t inputSize = INITIAL_DIM;
-    size_t *parsed;
+    parseData *p = initParseData(line);
 
-    if (line == 1)
-        parsed = safe_malloc(inputSize * sizeof(size_t));
-    else
-        parsed = safe_malloc(argumentsCount * sizeof(size_t));
+    if (!(d->dimNum)) p->inputSize = INITIAL_DIM;
+    else p->inputSize = argumentsCount;
+    size_t *parsed = safe_malloc((p->inputSize) * sizeof(size_t));
 
-    int c, state = OUT;
-    size_t i = 0, k = 0;
+    int c;
+    while (p->state != ERR && (c = getchar()) != '\n')
+        stringConstructor(c, &parsed, p);
 
-    while (state != ERR && (c = getchar()) != '\n') {
-        if (line == 1 && k == inputSize) {
-            inputSize *= 2;
-            parsed = realloc(parsed, inputSize * sizeof(size_t));
-            if (!parsed) state = ERR;
-        }
-        if (isalpha(c)) state = ERR;
-        if (state == IN) {
-            if (!isspace(c)) {
-                str[i] = c;
-                i++;
-            } else {
-                state = OUT;
-                if (!(k = tryToParse(&parsed, str, line, k, i))) return NULL;
-                i = 0;
-            }
-        } else if (!isspace(c)) {
-            state = IN;
-            str[i] = c;
-            i++;
-        }
+    if ((p->state) == IN) tryToParse(&parsed, p); // TODO handle wojtekr_zly08.in
+
+    if (p->state == ERR) {
+        if (!parsed) exitWithError(0, d); // ERR because realloc failed.
+        free(parsed); freeParseData(p); return NULL; // ...any other error.
     }
 
-    // TODO handle wojtekr_zly08.in
+    if (p->line != 1 && p->k < argumentsCount) {
+        // Error: Got less input arguments than expected.
+        free(parsed); freeParseData(p); return NULL;
+    }
 
-    if (state == ERR) {
-        // In such state two errors are possible:
-        // 1. realloc failed
-        if (!parsed) exitWithError(0, d);
-        // 2. Non-digit character encountered. Pass error on.
-        free(str); return NULL;
-    } else if (state == IN)
-        if (!(k = tryToParse(&parsed, str, line, k, i))) return NULL;
+    if (!(d->dimNum)) d->dimNum = p->k;
 
-    free(str);
-
-    if (!(d->dimNum)) d->dimNum = k;
-
-    if (line != 1 && k != argumentsCount) { free(parsed); return NULL; }
-    // Error: Unexpected number of input arguments.
-
+    freeParseData(p);
     return parsed;
 }
 
@@ -174,7 +197,7 @@ static uint8_t *invertBitTable(uint8_t *revHexTable, size_t last) {
 }
 
 /**
- * Converts Hex number to Binary
+ * Converts hex number to Binary
  * @return array of bits
  */
 static uint8_t *getBinaryFromHex() {
@@ -247,7 +270,7 @@ static uint8_t *getBinaryFromR() {
 }
 
 /**
- *  @brief getBinaryWallsRep detects fourth line input type and applies
+ *  @brief Detects 4th line input type by looking for "0x" or "R" and applies
  *  appropriate input parsing function to get a binary expansion of the
  *  number in that line.
  *  @return Pointer to bitTable.
@@ -273,30 +296,29 @@ static uint8_t *getBinaryWallsRep() {
         return getBinaryFromR();
 }
 
-// TODO refactor/document
-size_t getDimProduct(size_t maxNIndex) {
+/**
+ * Calculates a dimProduct (n_1*n_2*...*n_i - a product of known dimension
+ * sizes with indexes from 1 to i). Calculated results are then memoized in
+ * #inputData.
+ * @param i - Highest index that occurs in the dimProduct.
+ * @return A dimProduct.
+ */
+size_t getDimProduct(size_t i) {
     if (!(d->dimProducts)) {
-        d->dimProducts = safe_malloc(sizeof(size_t) * (d->dimNum));
+        d->dimProducts = safe_calloc(d->dimNum, sizeof(size_t));
         (d->dimProducts)[0] = (d->dimensions)[0];
-
-        for (size_t i = 1; i < d->dimNum; i++)
-            (d->dimProducts)[i] = 0;
     }
-    if (maxNIndex < 1) return 1;
-    else if (maxNIndex > d->dimNum) return -1;
-    else if ((d->dimProducts)[maxNIndex - 1] != 0)
-        return (d->dimProducts)[maxNIndex - 1];
+    size_t *dp = d->dimProducts;
+    if (i < 1) return 1;
+    else if (dp[i - 1] != 0) return dp[i - 1];
     else {
-        size_t product, a, b;
+        size_t a = getDimProduct(i - 1);
+        size_t b = (d->dimensions)[i - 1];
+        size_t product = a * b;
 
-        a = getDimProduct(maxNIndex - 1);
-        b = (d->dimensions)[maxNIndex - 1];
-        product = a * b;
+        if (a != product / b) exitWithError(1, d);
 
-        if (a != product / b)
-            exitWithError(1, d);
-
-        (d->dimProducts)[maxNIndex - 1] = product;
+        dp[i - 1] = product;
         return product;
     }
 }

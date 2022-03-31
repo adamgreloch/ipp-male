@@ -40,6 +40,6 @@ typedef struct inputData inputData;
  */
 inputData *getInputData();
 
-size_t getDimProduct(size_t maxNIndex);
+size_t getDimProduct(size_t i);
 
 #endif //MALE_INPUT_H
