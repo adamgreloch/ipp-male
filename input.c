@@ -108,10 +108,10 @@ static void tryToParse(size_t **parsed, parseData *p) {
  */
 static void stringConstructor(int c, size_t **parsed, parseData *p) {
     if (p->line == 1 && p->k == p->inputSize) {
-            p->inputSize *= 2;
-            *parsed = realloc(*parsed, p->inputSize * sizeof(size_t));
-            if (!(*parsed)) p->state = ERR;
-        }
+        p->inputSize *= 2;
+        *parsed = realloc(*parsed, p->inputSize * sizeof(size_t));
+        if (!(*parsed)) p->state = ERR;
+    }
     if (isalpha(c)) p->state = ERR;
     if (p->state == IN) {
         if (!isspace(c)) {
@@ -151,12 +151,16 @@ static size_t *getInputLine(int line, size_t argumentsCount) {
 
     if (p->state == ERR) {
         if (!parsed) exitWithError(0, d); // ERR: realloc failed earlier.
-        free(parsed); freeParseData(p); return NULL; // ...any other error.
+        free(parsed);
+        freeParseData(p);
+        return NULL; // ...any other error.
     }
 
     if (p->line != 1 && p->k < argumentsCount) {
         // ERR: Got less input arguments than expected.
-        free(parsed); freeParseData(p); return NULL;
+        free(parsed);
+        freeParseData(p);
+        return NULL;
     }
 
     if (!(d->dimNum)) d->dimNum = p->k;
@@ -189,7 +193,10 @@ static int getHexValue(int c) {
 static uint8_t *invertBitTable(uint8_t *revHexTable, size_t last) {
     uint8_t *bitArray = calloc(getMaxRank(d) / 8 + 1, sizeof(uint8_t));
 
-    if (!bitArray) { free(revHexTable); exitWithError(0, d); }
+    if (!bitArray) {
+        free(revHexTable);
+        exitWithError(0, d);
+    }
 
     for (size_t j = 0; j < last; j++)
         setRevBitsFromHex(&bitArray, j, revHexTable[last - j - 1]);
@@ -228,8 +235,10 @@ static uint8_t *getBinaryFromHex() {
             i++;
         }
     }
-    if (state == ERR || (i > 1 && 4 * i > getDimProduct(d->dimNum))) {
-        free(revHexTable); exitWithError(4, d);
+    if (state == ERR || 4 * i > getDimProduct(d->dimNum)) {
+        // ERR occurred or more bits in 4th line than cubes.
+        free(revHexTable);
+        exitWithError(4, d);
     }
     return invertBitTable(revHexTable, i);
 }
@@ -239,14 +248,17 @@ static uint8_t *getBinaryFromR() {
     size_t dimProduct = getDimProduct(d->dimNum);
     size_t *params = getInputLine(4, 5);
     if (!params) {
-        free(bitArray); exitWithError(4, d);
+        free(bitArray);
+        exitWithError(4, d);
     }
 
     size_t a = params[0], b = params[1], m = params[2], r = params[3];
 
     for (int i = 0; i < 4; i++)
         if (params[i] > UINT32_MAX) {
-            free(bitArray); free(params); return NULL;
+            free(bitArray);
+            free(params);
+            return NULL;
         }
 
     size_t *sw = safe_malloc((r + 1) * sizeof(size_t));
@@ -256,7 +268,11 @@ static uint8_t *getBinaryFromR() {
     sw[0] = params[4];
     free(params);
 
-    if (m == 0) { free(bitArray); free(sw); return NULL; }
+    if (m == 0) {
+        free(bitArray);
+        free(sw);
+        return NULL;
+    }
 
     for (size_t i = 1; i <= r; i++)
         sw[i] = (a * sw[i - 1] + b) % m;
@@ -328,7 +344,7 @@ size_t getDimProduct(size_t i) {
 inputData *getInputData() {
     d = malloc(sizeof(inputData));
     d->dimNum = d->dimProducts = d->dimensions = d->startPos = d->endPos =
-            d->binaryRep = d->dimProducts = NULL;
+    d->binaryRep = d->dimProducts = NULL;
 
     if (!(d->dimensions = getInputLine(1, NULL))) exitWithError(1, d);
     if (!(d->startPos = getInputLine(2, d->dimNum))) exitWithError(2, d);

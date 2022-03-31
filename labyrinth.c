@@ -128,7 +128,7 @@ static stack **initStacks() {
     init(mod0Stack);
     init(mod1Stack); // TODO specialize init
 
-    stack **stacks = malloc(2*sizeof(stack));
+    stack **stacks = malloc(2 * sizeof(stack));
 
     stacks[0] = mod0Stack;
     stacks[1] = mod1Stack;
