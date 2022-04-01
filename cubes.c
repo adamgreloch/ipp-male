@@ -2,23 +2,9 @@
 #include <stdlib.h>
 
 size_t rankCube(size_t *cube, InputData *d) {
-    size_t dim, product;
-    size_t sum = cube[0] - 1;
-    if (cube[0] > (d->dimensions)[0])
-        // Error: Cube position is outside dimension.
-        return -1;
-    for (size_t k = 1; k < d->dimNum; k++) {
-        product = 1;
-        for (size_t i = 0; i < k; i++) {
-            dim = (d->dimensions)[i];
-            if (cube[i] > dim)
-                // Error as above.
-                return -1;
-            else
-                product *= dim;
-        }
-        sum += (cube[k] - 1) * product;
-    }
+    size_t sum = 0;
+    for (size_t k = 0; k < d->dimNum; k++)
+        sum += (cube[k] - 1) * getDimProduct(k);
     return sum;
 }
 
