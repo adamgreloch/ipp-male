@@ -23,7 +23,7 @@ echo -e "\n### Program correctness test ###\n"
 time for f in "$2"/*.in
 do
     ./"$1" <"$f" 1>"${f%in}outp" 2>"${f%in}errp"
-    echo "--- ${f#*/}"
+    echo "--- ${f##*/}"
     if diff "${f%in}outp" "${f%in}out" > /dev/null 1>&1
     then
         echo -e "Answer ${GREEN}OK${RESET}"
@@ -31,10 +31,8 @@ do
         ((ans_passed++))
     else
         echo -e "Answer ${RED}failed${RESET}!"
-        echo "Expected:"
-        comm -13 "${f%in}outp" "${f%in}out"
-        echo "Got:"
-        comm -23 "${f%in}outp" "${f%in}out"
+        echo "Expected: $(comm -13 "${f%in}outp" "${f%in}out")"
+        echo "Got: $(comm -23 "${f%in}outp" "${f%in}out")"
         ((ans_failed++))
     fi
 
@@ -45,13 +43,15 @@ do
         ((err_passed++))
     else
         echo -e "Error ${RED}failed${RESET}!"
-        echo "Expected:"
-        comm -13 "${f%in}errp" "${f%in}err"
-        echo "Got:"
-        comm -23 "${f%in}errp" "${f%in}err"
+        echo "Expected: $(comm -13 "${f%in}errp" "${f%in}err")"
+        echo "Got: $(comm -23 "${f%in}errp" "${f%in}err")"
         ((err_failed++))
     fi
 done
+
+total=$((ans_passed+ans_failed))
+echo -e "\nCorrect answers: $ans_passed/$total"
+echo "Errors handled correctly: $err_passed/$total"
 
 echo -e "\n### Memory integrity test ###\n"
 
@@ -64,7 +64,7 @@ do
              --log-file="${f%in}memerr" \
     ./"$1" <"$f" 1>/dev/null 2>/dev/null
 
-    echo "--- ${f#*/}";
+    echo "--- ${f##*/}";
     if [ ! -s "${f%in}memerr" ]
     then
         echo -e "Memory ${GREEN}OK${RESET}"
@@ -75,9 +75,4 @@ do
     fi
 done
 
-total=$((ans_passed+ans_failed))
-
-echo -e "\nIn total:"
-echo "Correct answers: $ans_passed/$total"
-echo "Errors handled correctly: $err_passed/$total"
-echo "Tests where memory issues occured: $mem_errors"
+echo -e "\nTests where memory issues occured: $mem_errors"
