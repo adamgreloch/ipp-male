@@ -53,7 +53,7 @@ total=$((ans_passed+ans_failed))
 echo -e "\nCorrect answers: $ans_passed/$total"
 echo "Errors handled correctly: $err_passed/$total"
 
-echo -e "\n### Memory integrity test ###\n"
+echo -e "\n### Memory test ###\n"
 
 for f in "$2"/*.in
 do
