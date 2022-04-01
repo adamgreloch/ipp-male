@@ -10,9 +10,9 @@
 #include "stddef.h"
 
 /**
- * @brief Structure holding gathered input data.
+ * Holds gathered input data that is necessary for path finding.
  */
-struct inputData {
+struct InputData {
     size_t *dimensions;
     /**< Stores n_1, n_2, ..., n_k. */
     size_t *startPos;
@@ -32,13 +32,13 @@ struct inputData {
     /**< Stores every i-th n_1*n_2*...*n_i product. Useful in cube operators. */
 };
 
-typedef struct inputData inputData;
+typedef struct InputData InputData;
 
 /**
- * @brief Gets input from the stdin.
- * @return Input data pointer.
+ * Gets input from the stdin.
+ * @return #InputData pointer.
  */
-inputData *getInputData();
+InputData *getInputData();
 
 size_t getDimProduct(size_t i);
 

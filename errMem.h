@@ -10,16 +10,16 @@
 #include <stdlib.h>
 
 /**
- * @brief Frees input data.
- * @param d - Input data pointer.
+ * Frees input data.
+ * @param d - #InputData pointer.
  */
-void freeData(inputData *d);
+void freeData(InputData *d);
 
 /**
- * @brief Frees collected input data and exits with code 1.
+ * Frees collected input data and exits with code 1.
  * @param errNum - Error ID.
- * @param d - Input data pointer.
+ * @param d - #InputData pointer.
  */
-void exitWithError(int errNum, inputData *dataToFree);
+void exitWithError(int errNum, InputData *dataToFree);
 
 #endif //MALE_ERRMEM_H

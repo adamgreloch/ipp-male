@@ -4,7 +4,7 @@
 #include <stdint.h>
 
 int main() {
-    inputData *d = getInputData();
+    InputData *d = getInputData();
 
     int64_t pathLength = findPath(d);
 

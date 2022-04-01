@@ -2,7 +2,6 @@
 
 GREEN='\033[0;32m'
 RED='\033[0;31m'
-#WHITE='\033[0;37m'
 RESET='\033[0m'
 
 # Clean up.
@@ -21,12 +20,11 @@ mem_errors=0
 
 time for f in "$2"/*.in
 do
-    # valgrind --error-exitcode=123 \
-    #          --leak-check=full \
-    #          --show-leak-kinds=all \
-    #          --errors-for-leak-kinds=all \
-    #          --quiet \
-    #          --log-file="${f%in}memerr" \
+    valgrind --leak-check=full \
+             --show-leak-kinds=all \
+             --errors-for-leak-kinds=all \
+             --quiet \
+             --log-file="${f%in}memerr" \
     ./"$1" <"$f" 1>"${f%in}outp" 2>"${f%in}errp"
 
     echo -en "--- ${f#*/}\n";

@@ -1,5 +1,3 @@
-# https://www.gnu.org/software/make/manual/html_node/Complex-Makefile.html#Complex-Makefile
-
 CC = gcc
 CFLAGS = -w -Wall -Wextra -Wno-implicit-fallthrough -std=c17 -O2
 

@@ -1,5 +1,3 @@
-#pragma clang diagnostic push
-
 #include "input.h"
 #include "errMem.h"
 #include "cubes.h"
@@ -8,11 +6,11 @@
 
 #define IN 1
 #define OUT 0
-#define ERR -1
+#define ERR (-1)
 #define INITIAL_SIZE 100
 #define INITIAL_DIM 4
 
-static inputData *d;
+static InputData *d;
 
 static void *safe_malloc(size_t size) {
     void *p = malloc(size);
@@ -32,7 +30,7 @@ static void *safe_calloc(size_t num, size_t size) {
     return p;
 }
 
-static struct parseData {
+static struct ParseData {
     int *str;
     int state;
     int line;
@@ -41,10 +39,10 @@ static struct parseData {
     size_t inputSize;
 };
 
-typedef struct parseData parseData;
+typedef struct ParseData ParseData;
 
-static parseData *initParseData(int line) {
-    parseData *p = safe_malloc(sizeof(parseData));
+static ParseData *initParseData(int line) {
+    ParseData *p = safe_malloc(sizeof(ParseData));
     p->str = safe_malloc(sizeof(int) * UINT16_MAX);
     p->line = line;
     p->state = OUT;
@@ -53,14 +51,14 @@ static parseData *initParseData(int line) {
     return p;
 }
 
-static void freeParseData(parseData *p) {
+static void freeParseData(ParseData *p) {
     free(p->str);
     free(p);
 }
 
 /**
  * Gets numerical size_t value from a given string.
- * @warn Assumes str != NULL.
+ * @details Assumes str != NULL.
  * @param str - String to parse.
  * @param i - Last char index.
  * @return Parsed value.
@@ -78,12 +76,12 @@ static size_t getNum(int *str, size_t i) {
 }
 
 /**
- * Tries to parse a given string. Will set p->state as ERR if parsed number
+ * Tries to parse a given string. Will set p->state to ERR if parsed number
  * is incorrect.
  * @param parsed - Array of parsed input numbers.
- * @param p - Parse data pointer.
+ * @param p - #ParseData pointer.
  */
-static void tryToParse(size_t **parsed, parseData *p) {
+static void tryToParse(size_t **parsed, ParseData *p) {
     if (p->k == p->inputSize) p->state = ERR; // ERR: More args than expected.
     else {
         size_t num = getNum(p->str, p->i);
@@ -104,9 +102,9 @@ static void tryToParse(size_t **parsed, parseData *p) {
  * input errors.
  * @param c - Input character.
  * @param parsed - Array of parsed input numbers.
- * @param p - Parse data pointer.
+ * @param p - #ParseData pointer.
  */
-static void stringConstructor(int c, size_t **parsed, parseData *p) {
+static void stringConstructor(int c, size_t **parsed, ParseData *p) {
     if (p->line == 1 && p->k == p->inputSize) {
         p->inputSize *= 2;
         *parsed = realloc(*parsed, p->inputSize * sizeof(size_t));
@@ -117,12 +115,14 @@ static void stringConstructor(int c, size_t **parsed, parseData *p) {
         if (!isspace(c)) {
             (p->str)[p->i] = c;
             (p->i)++;
-        } else {
+        }
+        else {
             p->state = OUT;
             tryToParse(parsed, p);
             p->i = 0;
         }
-    } else if (!isspace(c)) {
+    }
+    else if (!isspace(c)) {
         p->state = IN;
         (p->str)[p->i] = c;
         (p->i)++;
@@ -130,21 +130,25 @@ static void stringConstructor(int c, size_t **parsed, parseData *p) {
 }
 
 /**
- * @brief Gets numerical input from a line.
- * @warn Assumes 1 <= line <= 4.
+ * Gets numerical input from a line.
+ * @details Assumes 1 <= line <= 4.
  * @param line - Input line number.
  * @param argumentsCount - Number of arguments (ignored for lines 1,4).
  * @return Parsed input array.
  */
 static size_t *getInputLine(int line, size_t argumentsCount) {
-    parseData *p = initParseData(line);
+    ParseData *p = initParseData(line);
+    int c;
 
     if (!(d->dimNum)) p->inputSize = INITIAL_DIM;
     else p->inputSize = argumentsCount;
+
     size_t *parsed = safe_malloc((p->inputSize) * sizeof(size_t));
 
-    int c;
     while (p->state != ERR && (c = getchar()) != '\n' && c != EOF)
+        // If gathered input does not meet specified requirements,
+        // stringConstructor or procedures that it invokes will change parsing
+        // state to ERR, thus immediately terminating further char read.
         stringConstructor(c, &parsed, p);
 
     if ((p->state) == IN) tryToParse(&parsed, p);
@@ -169,9 +173,15 @@ static size_t *getInputLine(int line, size_t argumentsCount) {
     return parsed;
 }
 
+/**
+ * Gets a hex value bound to a given char. Assumes that input char is coded in
+ * ASCII or other consecutive code.
+ * @details When numbers and letters are ordered consecutively, hex
+ * values are easy to obtain.
+ * @param c - A char variable.
+ * @return Hex value or -1 if given char does not represent any hex value.
+ */
 static int getHexValue(int c) {
-    // In ASCII, numbers and letters are ordered consecutively, making hex
-    // values easy to obtain.
     if ('0' <= c && c <= '9')
         return c - '0';
     else if ('A' <= c && c <= 'F')
@@ -183,14 +193,14 @@ static int getHexValue(int c) {
 }
 
 /**
- * @brief Inverts cells of "bit-reversed" bitTable, thus creating a proper 4th
+ * Inverts cells of "bit-reversed" bitTable, thus creating a proper 4th
  * line number binary representation with the least significant bit in the
- * index 0. Technically, it is just inverting cells from 0 to last.
+ * index 0. Technically, it just inverts cells in array from 0 to i.
  * @param revHexTable - Bit-reversed bitTable
- * @param last - Last filled cell.
+ * @param i - Last filled cell.
  * @return Inverted bitTable.
  */
-static uint8_t *invertBitTable(uint8_t *revHexTable, size_t last) {
+static uint8_t *invertBitTable(uint8_t *revHexTable, size_t i) {
     uint8_t *bitArray = calloc(getMaxRank(d) / 8 + 1, sizeof(uint8_t));
 
     if (!bitArray) {
@@ -198,16 +208,16 @@ static uint8_t *invertBitTable(uint8_t *revHexTable, size_t last) {
         exitWithError(0, d);
     }
 
-    for (size_t j = 0; j < last; j++)
-        setRevBitsFromHex(&bitArray, j, revHexTable[last - j - 1]);
+    for (size_t j = 0; j < i; j++)
+        setRevBitsFromHex(&bitArray, j, revHexTable[i - j - 1]);
 
     free(revHexTable);
     return bitArray;
 }
 
 /**
- * Converts hex number to Binary
- * @return array of bits
+ * Converts hex number to binary.
+ * @return A bitTable or NULL on error.
  */
 static uint8_t *getBinaryFromHex() {
     size_t tableSize = INITIAL_SIZE;
@@ -219,8 +229,7 @@ static uint8_t *getBinaryFromHex() {
     size_t i = 0; // bitArray index
 
     while (state != ERR && (c = getchar()) != '\n' && c != EOF) {
-        if (isspace(c))
-            foundWhitespace = 1;
+        if (isspace(c)) foundWhitespace = 1;
         else if (foundWhitespace) state = ERR;
             // ERR: Whitespace between digits encountered.
         else if (!leadingZeros || c != '0') {
@@ -238,18 +247,22 @@ static uint8_t *getBinaryFromHex() {
     if (state == ERR || 4 * i > getDimProduct(d->dimNum)) {
         // ERR occurred or more bits in 4th line than cubes.
         free(revHexTable);
-        exitWithError(4, d);
+        return NULL;
     }
     return invertBitTable(revHexTable, i);
 }
 
+/**
+ * Converts R number to binary.
+ * @return A bitTable or NULL on error.
+ */
 static uint8_t *getBinaryFromR() {
     uint8_t *bitArray = safe_calloc(getMaxRank(d) / 8 + 1, sizeof(uint8_t));
     size_t dimProduct = getDimProduct(d->dimNum);
     size_t *params = getInputLine(4, 5);
     if (!params) {
         free(bitArray);
-        exitWithError(4, d);
+        return NULL;
     }
 
     size_t a = params[0], b = params[1], m = params[2], r = params[3];
@@ -288,7 +301,7 @@ static uint8_t *getBinaryFromR() {
 }
 
 /**
- *  @brief Detects 4th line input type by looking for "0x" or "R" and applies
+ *  Detects 4th line input type by looking for "0x" or "R" and applies
  *  appropriate input parsing function to get a binary expansion of the
  *  number in that line.
  *  @return Pointer to bitTable.
@@ -317,7 +330,7 @@ static uint8_t *getBinaryWallsRep() {
 /**
  * Calculates a dimProduct (n_1*n_2*...*n_i - a product of known dimension
  * sizes with indexes from 1 to i). Calculated results are then memoized in
- * #inputData.
+ * #InputData.
  * @param i - Highest index that occurs in the dimProduct.
  * @return A dimProduct.
  */
@@ -341,8 +354,8 @@ size_t getDimProduct(size_t i) {
     }
 }
 
-inputData *getInputData() {
-    d = malloc(sizeof(inputData));
+InputData *getInputData() {
+    d = malloc(sizeof(InputData));
     d->dimNum = d->dimProducts = d->dimensions = d->startPos = d->endPos =
     d->binaryRep = d->dimProducts = NULL;
 

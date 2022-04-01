@@ -11,11 +11,11 @@
 #include <stddef.h>
 
 /**
- * @brief Finds path in a labyrinth defined by #inputData.
- * @param d - Input data pointer.
- * @return A path length or -1 in case when path between two points specified in
- * #inputData does not exist.
+ * Finds path in a labyrinth defined by #InputData.
+ * @param d - #InputData pointer.
+ * @return A path length or -1 in case when path in a labyrinth defined by
+ * #InputData does not exist.
  */
-int64_t findPath(inputData *d);
+int64_t findPath(InputData *d);
 
 #endif //MALE_LABYRINTH_H

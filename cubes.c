@@ -1,11 +1,11 @@
 #include "cubes.h"
 #include <stdlib.h>
 
-size_t rankCube(size_t *cube, inputData *d) {
+size_t rankCube(size_t *cube, InputData *d) {
     size_t dim, product;
     size_t sum = cube[0] - 1;
     if (cube[0] > (d->dimensions)[0])
-        // Error: Cube positon is outside dimension.
+        // Error: Cube position is outside dimension.
         return -1;
     for (size_t k = 1; k < d->dimNum; k++) {
         product = 1;
@@ -22,7 +22,7 @@ size_t rankCube(size_t *cube, inputData *d) {
     return sum;
 }
 
-size_t *unrankCube(size_t cubeRank, inputData *d) {
+size_t *unrankCube(size_t cubeRank, InputData *d) {
     size_t *cubeCords = malloc((d->dimNum) * sizeof(size_t));
     size_t dimSize;
 
@@ -43,7 +43,7 @@ size_t moveRank(size_t cubeRank, size_t dim, int steps) {
 
 static size_t maxRank = 0;
 
-size_t getMaxRank(inputData *d) {
+size_t getMaxRank(InputData *d) {
     if (maxRank == 0) {
         size_t *cubeCords = malloc((d->dimNum) * sizeof(size_t));
 
