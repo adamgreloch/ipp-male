@@ -2,58 +2,7 @@
 #include "bitTable.h"
 #include "cubes.h"
 #include "errMem.h"
-
-static struct Node {
-    size_t data;
-    struct Node *next;
-};
-typedef struct Node Node;
-
-static struct Stack {
-    size_t size;
-    Node *top;
-};
-typedef struct Stack Stack;
-
-static void init(Stack *s) {
-    s->size = 0;
-    s->top = NULL;
-}
-
-static int isEmpty(Stack *s) {
-    return (s->size <= 0);
-}
-
-static void push(Stack *s, size_t value) {
-    Node *new = malloc(sizeof(Node));
-    new->data = value;
-    new->next = NULL;
-
-    if (!(s->top))
-        new->next = NULL;
-    else
-        new->next = s->top;
-
-    s->top = new;
-    s->size++;
-}
-
-// Assumes s is non-empty.
-static size_t pop(Stack *s) {
-    Node *tmp = s->top;
-    size_t popped = s->top->data;
-    s->top = s->top->next;
-    s->size--;
-
-    free(tmp);
-    return popped;
-}
-
-static void empty(Stack *s) {
-    while (!isEmpty(s))
-        pop(s);
-    free(s);
-}
+#include "stack.h"
 
 static uint8_t *visited;
 static Stack *mod0Stack;
