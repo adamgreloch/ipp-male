@@ -3,8 +3,6 @@
 #include "cubes.h"
 #include "errMem.h"
 
-static uint8_t *visited;
-
 static struct Node {
     size_t data;
     struct Node *next;
@@ -16,9 +14,6 @@ static struct Stack {
     Node *top;
 };
 typedef struct Stack Stack;
-
-static Stack *mod0Stack;
-static Stack *mod1Stack;
 
 static void init(Stack *s) {
     s->size = 0;
@@ -59,6 +54,10 @@ static void empty(Stack *s) {
         pop(s);
     free(s);
 }
+
+static uint8_t *visited;
+static Stack *mod0Stack;
+static Stack *mod1Stack;
 
 /**
  * Tries to push a cube into a Stack. Will succeed if the cube is not a
@@ -126,7 +125,7 @@ static Stack **initStacks() {
     mod0Stack = malloc(sizeof(Stack));
     mod1Stack = malloc(sizeof(Stack));
     init(mod0Stack);
-    init(mod1Stack); // TODO specialize init
+    init(mod1Stack);
 
     Stack **stacks = malloc(2 * sizeof(Stack));
 
