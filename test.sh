@@ -75,4 +75,4 @@ do
     fi
 done
 
-echo -e "\nTests where memory issues occured: $mem_errors"
+echo "\nTests where memory issues occured: $mem_errors"
